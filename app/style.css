@@ -37,3 +37,23 @@
 .delete-icon{color:#96382c}
 .delete-icon:hover{background:#fcefeb}
 .delete-icon::before{content:'';width:18px;height:18px;background:currentColor;mask:url('./trash.svg') center / contain no-repeat}
+
+.user-content{padding-top:16px}
+.user-toolbar,.user-list-row,.user-detail-heading{display:flex;align-items:center;gap:12px}
+.user-toolbar{justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+#user-count{font-size:.8rem;color:var(--muted);font-weight:500}
+#account-list{display:grid;gap:7px}
+.user-list-row,.user-detail-heading{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink);text-align:left}
+.user-list-row:hover,.user-detail-heading{background:var(--soft)}
+.user-identity{display:grid;gap:3px;flex:1;min-width:0;overflow-wrap:anywhere}
+.user-identity small{color:var(--muted)}
+.user-status{padding:4px 8px;border-radius:12px;background:#edf1f3;color:#4a6170;font-size:.73rem;font-weight:700;text-align:center}
+.user-status[data-state=active]{background:#e8f3e4;color:#34612c}
+.user-status[data-state=pending]{background:#fff1d6;color:#795417}
+.user-back{margin:0 0 10px;padding-left:0}
+.user-actions{display:grid;gap:4px;margin-top:12px}
+.user-actions button{text-align:left;border:1px solid var(--line)}
+.user-actions .user-danger{color:#96382c}
+#invite-output{padding:12px;background:var(--soft);border-radius:9px}
+#copy-invite{margin-top:6px}
+#admin-message:empty{display:none}

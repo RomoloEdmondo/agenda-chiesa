@@ -97,15 +97,26 @@
 </dialog>
 <dialog id="user-admin" aria-labelledby="users-title">
   <div class="dialog-head"><h2 id="users-title">Gestione utenti</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
-  <div class="account-content">
-    <form id="invite-form">
-      <label>Email<input name="email" type="email" required maxlength="254"></label>
-      <label>Permessi<select name="role"><option value="viewer">Lettura</option><option value="editor">Modifica</option></select></label>
-      <button class="primary">Crea invito</button>
-    </form>
+  <div class="account-content user-content">
+    <div id="users-overview">
+      <div class="user-toolbar"><h3>Utenti <span id="user-count"></span></h3><button type="button" class="primary" id="show-invite">＋ Invita utente</button></div>
+      <div id="account-list"></div>
+    </div>
+    <div id="user-panel" hidden>
+      <button type="button" class="plain user-back" id="user-back">‹ Tutti gli utenti</button>
+      <section id="user-details" aria-label="Dettaglio utente" hidden></section>
+      <form id="invite-form" hidden>
+        <h3>Invita utente</h3>
+        <label>Email<input name="email" type="email" required maxlength="254"></label>
+        <label>Permessi<select name="role"><option value="viewer">Lettura</option><option value="editor">Modifica</option></select></label>
+        <button class="primary">Crea invito</button>
+      </form>
+      <div id="invite-output" hidden>
+        <label>Link di invito · valido 48 ore<input id="invite-link" readonly></label>
+        <button type="button" class="plain" id="copy-invite">Copia link</button>
+      </div>
+    </div>
     <p id="admin-message" role="status"></p>
-    <label id="invite-output" hidden>Link di invito (valido 48 ore)<input id="invite-link" readonly><button class="plain" id="copy-invite">Copia link</button></label>
-    <div id="account-list"></div>
   </div>
 </dialog>
 </div>

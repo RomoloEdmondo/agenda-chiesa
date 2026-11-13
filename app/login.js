@@ -62,56 +62,167 @@ $('logout').onclick = async () => {
 };
 
 const labels = {admin:'Amministratore',editor:'Modifica',viewer:'Lettura'};
+let users = [];
+let selectedEmail;
+let adminBusy = false;
+
+const statusOf = user => user.active ? (user.activated ? 'Attivo' : 'Invito in attesa') : 'Disattivato';
+
+function userIdentity(user) {
+  const identity = document.createElement('span');
+  identity.className = 'user-identity';
+  const email = document.createElement('strong');
+  email.textContent = user.email;
+  const role = document.createElement('small');
+  role.textContent = labels[user.role];
+  identity.append(email,role);
+  const status = document.createElement('span');
+  status.className = 'user-status';
+  status.dataset.state = user.active ? (user.activated ? 'active' : 'pending') : 'disabled';
+  status.textContent = statusOf(user);
+  return [identity,status];
+}
+
 async function loadUsers() {
-  const users = await jsonApi('/api/users');
+  users = await jsonApi('/api/users');
+  $('user-count').textContent = '('+users.length+')';
   const rows = users.map(user=>{
-    const row = document.createElement('div');
-    row.className='account-row';
-    const text = document.createElement('span');
-    text.textContent = user.email+' · '+labels[user.role]+' · '+(user.active ? (user.activated?'Attivo':'Invito in attesa') : 'Disattivato');
-    row.append(text);
-    if (user.role==='admin') return row;
-    const actions = document.createElement('div');
-    const choices = [['invite',user.role,user.activated?'Reimposta password':'Nuovo invito']];
-    if (user.active) choices.push(['role',user.role==='editor'?'viewer':'editor',user.role==='editor'?'Imposta lettura':'Consenti modifica'],['disable',user.role,'Disattiva']);
-    for (const [action,role,label] of choices) {
-      const button = document.createElement('button');
-      button.className='plain';
-      button.textContent=label;
-      button.onclick=()=>modifyUser({action,email:user.email,role},button);
-      actions.append(button);
-    }
-    row.append(actions);
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'user-list-row';
+    const arrow = document.createElement('span');
+    arrow.textContent = '›';
+    arrow.setAttribute('aria-hidden','true');
+    row.append(...userIdentity(user),arrow);
+    row.onclick = () => showUser(user.email);
     return row;
   });
+  if (!rows.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty';
+    empty.textContent = 'Nessun utente disponibile.';
+    rows.push(empty);
+  }
   $('account-list').replaceChildren(...rows);
 }
 
+function showUsers() {
+  selectedEmail = undefined;
+  $('users-overview').hidden = false;
+  $('user-panel').hidden = true;
+  $('invite-output').hidden = true;
+  $('invite-link').value = '';
+  $('admin-message').textContent = '';
+}
+
+function openUserPanel() {
+  $('users-overview').hidden = true;
+  $('user-panel').hidden = false;
+  $('invite-output').hidden = true;
+  $('invite-link').value = '';
+  $('admin-message').textContent = '';
+}
+
+function showUser(email) {
+  const user = users.find(item=>item.email===email);
+  if (!user) return;
+  selectedEmail = email;
+  openUserPanel();
+  $('invite-form').hidden = true;
+  const details = $('user-details');
+  details.hidden = false;
+  const heading = document.createElement('div');
+  heading.className = 'user-detail-heading';
+  heading.append(...userIdentity(user));
+  details.replaceChildren(heading);
+  if (user.role!=='admin') {
+    const actions = document.createElement('div');
+    actions.className = 'user-actions';
+    const choices = [];
+    if (user.active) {
+      choices.push(['role',user.role==='editor'?'viewer':'editor',user.role==='editor'?'Imposta sola lettura':'Consenti modifica']);
+    }
+    choices.push(['invite',user.role,!user.active?'Riattiva con un invito':user.activated?'Reimposta password':'Crea un nuovo invito']);
+    if (user.active) choices.push(['disable',user.role,'Disattiva accesso']);
+    for (const [action,role,label] of choices) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = action==='disable' ? 'plain user-danger' : 'plain';
+      button.textContent = label;
+      button.onclick = () => {
+        const confirmation = action==='disable' ? 'Disattivare l’accesso di '+email+'?'
+          : action==='invite' && user.activated ? 'Reimpostare la password di '+email+'? L’utente dovrà usare il nuovo invito per accedere.' : '';
+        if (!confirmation || window.confirm(confirmation)) modifyUser({action,email,role},button);
+      };
+      actions.append(button);
+    }
+    details.append(actions);
+  }
+  $('user-back').focus();
+}
+
 async function modifyUser(data,button) {
-  if (button.disabled) return;
+  if (adminBusy || button.disabled) return;
+  adminBusy=true;
   button.disabled=true;
-  $('admin-message').textContent='';
-  $('invite-output').hidden=true;
+  $('user-back').disabled=true;
+  $('admin-message').textContent='Aggiornamento in corso…';
   try {
     const result = await jsonApi('/api/users',data);
+    try {
+      await loadUsers();
+      if (selectedEmail) showUser(selectedEmail);
+      else $('invite-form').reset();
+    } catch {
+      $('admin-message').textContent='Modifica salvata. Riapri Gestione utenti per aggiornare la lista.';
+      if (!result.code) return;
+    }
     if (result.code) {
       const link=new URL(location.pathname,location.origin);
       link.hash='invito='+result.code;
       $('invite-link').value=link.href;
       $('invite-output').hidden=false;
-      $('admin-message').textContent='Invito pronto da condividere con '+data.email+'.';
+      $('admin-message').textContent='Invito pronto per '+data.email+'.';
     } else $('admin-message').textContent='Utente aggiornato.';
-    await loadUsers();
   } catch(error) { $('admin-message').textContent=error.message; }
-  finally { button.disabled=false; }
+  finally {
+    adminBusy=false;
+    button.disabled=false;
+    $('user-back').disabled=false;
+    if (selectedEmail) $('user-back').focus();
+  }
 }
-$('manage-users').onclick=async()=>{
-  $('user-admin').showModal();
-  try { await loadUsers(); } catch(error) { $('admin-message').textContent=error.message; }
+$('user-back').onclick=()=>{
+  showUsers();
+  $('show-invite').focus();
 };
+$('show-invite').onclick=()=>{
+  openUserPanel();
+  $('user-details').hidden=true;
+  const invite = $('invite-form');
+  invite.reset();
+  invite.hidden=false;
+  invite.elements.email.focus();
+};
+$('manage-users').onclick=async()=>{
+  showUsers();
+  $('account-list').replaceChildren();
+  $('user-count').textContent='';
+  $('admin-message').textContent='Caricamento utenti…';
+  $('user-admin').showModal();
+  try { await loadUsers(); $('admin-message').textContent=''; }
+  catch(error) { $('admin-message').textContent=error.message; }
+};
+$('user-admin').addEventListener('cancel',event=>{
+  if (adminBusy) event.preventDefault();
+});
+$('user-admin').querySelector('[method="dialog"]').addEventListener('submit',event=>{
+  if (adminBusy) event.preventDefault();
+});
+$('user-admin').addEventListener('close',showUsers);
 $('invite-form').onsubmit=event=>{
   event.preventDefault();
-  modifyUser({action:'invite',...Object.fromEntries(new FormData(event.target))},event.submitter);
+  modifyUser({action:'invite',...Object.fromEntries(new FormData(event.currentTarget))},event.submitter);
 };
 $('copy-invite').onclick=async()=>{
   try { await navigator.clipboard.writeText($('invite-link').value); $('admin-message').textContent='Link copiato.'; }
