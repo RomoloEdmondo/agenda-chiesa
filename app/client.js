@@ -162,8 +162,9 @@ function fillTypes(selected=$('type-filter').value) {
 function renderCatalog() {
   const names = catalogNames(catalogKind);
   $('catalog-list').innerHTML = names.length ? names.map(name=>'<li class="account-row"><span>'+escape(name)+
-    '</span><button type="button" class="plain" data-remove="'+escape(name)+'" aria-label="Rimuovi '+escape(name)+
-    '">Rimuovi</button></li>').join('') : '<li class="muted">Nessuna voce presente.</li>';
+    '</span><button type="button" class="icon-button delete-icon" data-remove="'+escape(name)+
+    '" aria-label="Rimuovi '+escape(name)+'" title="Rimuovi '+escape(name)+'"></button></li>').join('')
+    : '<li class="muted">Nessuna voce presente.</li>';
 }
 
 function updateCatalog(entry) {
@@ -278,22 +279,50 @@ function renderEditor(editing) {
       const value = escape(active[key]);
       if (kind==='suggestions') {
         const names = catalogNames(key);
-        return '<div class="event-choice"><label>'+label+'<input type="text" name="'+key+
+        return '<div class="event-choice"><label for="event-'+key+'">'+label+'</label>'+
+          '<div class="choice-control"><input id="event-'+key+'" type="text" name="'+key+
           '" maxlength="5000" value="'+value+'"'+(key==='type'?' required':'')+
-          ' placeholder="Scrivi qui"></label><select data-choose="'+key+'" aria-label="Scegli '+label+
-          ' dall’elenco"'+(names.length?'':' disabled')+'>'+option('','Scegli dall’elenco')+
-          names.map(name=>option(name)).join('')+'</select></div>';
+          ' placeholder="'+(key==='type'?'Scegli o scrivi':'Facoltativo')+'">'+
+          '<button type="button" class="icon-button choice-toggle" aria-label="Mostra elenco: '+label+
+          '" aria-expanded="false" aria-controls="'+key+'-choices"'+(names.length?'':' disabled')+'></button></div>'+
+          '<div class="choice-options" id="'+key+'-choices" hidden>'+
+          names.map(name=>'<button type="button" data-value="'+escape(name)+'">'+escape(name)+'</button>').join('')+'</div></div>';
       }
       const field = kind==='select' ? '<select name="'+key+'">'+statuses.map(v=>option(v,v,v===active[key])).join('')+'</select>'
         : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
         : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
     }).join('')+'</div><section class="tasks"><h3>Checklist</h3><div id="task-list"></div><button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
-    $('details').querySelectorAll('[data-choose]').forEach(select=>{
-      select.onchange = () => {
-        if (select.value) $('event-form').elements[select.dataset.choose].value = select.value;
-        select.selectedIndex = 0;
+    $('details').querySelectorAll('.event-choice').forEach(choice=>{
+      const input = choice.querySelector('input');
+      const toggle = choice.querySelector('.choice-toggle');
+      const list = choice.querySelector('.choice-options');
+      function setOpen(open) {
+        list.hidden = !open;
+        toggle.setAttribute('aria-expanded',String(open));
+      }
+      toggle.onclick = () => {
+        const open = list.hidden;
+        setOpen(open);
+        if (open) list.querySelector('button').focus();
       };
+      list.onclick = event => {
+        const item = event.target.closest('button[data-value]');
+        if (!item) return;
+        input.value = item.dataset.value;
+        setOpen(false);
+        input.focus();
+      };
+      choice.addEventListener('focusout',event=>{
+        if (!choice.contains(event.relatedTarget)) setOpen(false);
+      });
+      choice.addEventListener('keydown',event=>{
+        if (event.key==='Escape' && !list.hidden) {
+          event.preventDefault();
+          setOpen(false);
+          toggle.focus();
+        }
+      });
     });
     for (const task of active.tasks) addTask(task);
     $('add-task').onclick = () => {
