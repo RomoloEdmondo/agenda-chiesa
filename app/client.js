@@ -1,3 +1,4 @@
+import {notice} from './toast.js';
 import {apiFetch, isAdmin, jsonApi, mayEdit} from './session.js';
 import {types, statuses} from './event-types.js';
 const $ = id => document.getElementById(id);
@@ -105,7 +106,7 @@ function renderTeam(list) {
     }
     link.searchParams.delete('speaker-filter');
     link.hash = 'team';
-    try { await navigator.clipboard.writeText(link.href); notice('Link copiato. Si apre per chi ha accesso al Site.'); }
+    try { await navigator.clipboard.writeText(link.href); notice('Link copiato. Si apre per chi ha accesso all’agenda.'); }
     catch { window.prompt('Copia il link della vista team',link.href); }
   };
   $('print').onclick = () => window.print();
@@ -129,10 +130,7 @@ function render() {
   if (view==='team') renderTeam(list);
 }
 
-function notice(message) {
-  $('notice').hidden = !message;
-  $('notice').textContent = message;
-}
+
 
 let catalog = [];
 let catalogKind;

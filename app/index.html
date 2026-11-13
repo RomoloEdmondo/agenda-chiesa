@@ -29,24 +29,25 @@
     </a>
     <nav aria-label="Viste dell’agenda">
       <button data-view="agenda">Calendario</button><button data-view="prep">Preparazione</button><button data-view="team">Vista team</button>
-    </nav>
-    <div class="account-actions">
+
       <details id="catalog-menu" hidden>
         <summary class="square" aria-label="Menu di gestione">☰</summary>
         <div class="panel catalog-menu-items">
           <button type="button" class="plain" data-catalog="speaker">Relatori</button>
           <button type="button" class="plain" data-catalog="type">Tipi di evento</button>
         </div>
-      </details><button type="button" class="plain" id="manage-users" hidden>Utenti</button><button type="button" class="plain" id="logout">Esci</button><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div>
+      </details>
+    </nav>
+    <div class="account-actions"><button type="button" class="plain" id="manage-users" hidden>Utenti</button><button type="button" class="plain" id="logout">Esci</button><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div>
   </div>
 </header>
 <main class="wrap">
   <section class="hero">
-    <div class="arch" aria-hidden="true"></div>
-    <div class="hero-content"><p class="eyebrow">CHIESA EVANGELICA RUCHHEIM</p><h1 id="page-title">Agenda della comunità</h1>
+    <div class="hero-content"><h1 id="page-title">Agenda della comunità</h1>
     <p id="page-subtitle">Appuntamenti e preparazione del programma della comunità.</p></div>
+    <img class="hero-logo" src="./simbolo-ruchheim.webp" width="76" height="58" alt="">
   </section>
-  <div id="notice" role="status" hidden></div>
+  <div id="notice" class="toast" hidden><p id="toast-message" role="status"></p><button type="button" class="icon-button" id="toast-close" aria-label="Chiudi notifica">×</button></div>
   <section class="filters panel" aria-label="Filtri eventi">
     <label>Tipo di evento<select id="type-filter"><option value="">Tutti i tipi</option></select></label>
     <label>Periodo<select id="period-filter"><option value="">Tutto il programma</option><option value="future">Da oggi in poi</option><option value="past">Appuntamenti passati</option><option value="undated">Data da confermare</option><option value="custom">Intervallo personalizzato</option></select></label>

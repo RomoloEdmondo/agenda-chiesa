@@ -1,3 +1,4 @@
+import {notice} from './toast.js';
 import {currentToken,setSession,jsonApi} from './session.js';
 
 const $ = id => document.getElementById(id);
@@ -56,7 +57,7 @@ $('setup-toggle').onclick = () => {
 };
 $('logout').onclick = async () => {
   try { await jsonApi('/api/logout',{}); }
-  catch (error) { if (error.status!==401) { $('notice').hidden=false; $('notice').textContent=error.message; return; } }
+  catch (error) { if (error.status!==401) { notice(error.message); return; } }
   setSession(null);
   location.reload();
 };
