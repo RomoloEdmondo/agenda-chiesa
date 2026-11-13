@@ -112,3 +112,23 @@
 .church-footer a{font-size:.82rem;color:var(--green);text-decoration:none}
 .church-footer a:hover{text-decoration:underline}
 @media print{.church-footer{display:none}}
+
+.editor-heading{flex:1;min-width:0}
+#editor .dialog-head{align-items:center;background:#f6f9fc}
+#editor .eyebrow{text-transform:uppercase}
+#editor #event-title{padding:3px 0;border:0;border-bottom:1px solid #9ab5c6;border-radius:0;background:transparent;font-size:clamp(1.12rem,3vw,1.55rem);font-weight:720;letter-spacing:-.025em}
+#editor #event-title:focus-visible{outline:0;border-bottom:2px solid #216c98}
+#editor .event-schedule{grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)) minmax(0,.7fr);align-items:start;gap:8px}
+.event-location{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr);align-items:start;gap:8px}
+#editor .event-place-row{margin-top:5px;min-height:34px}
+.dialog-head .square,.task .square,#toast-close{color:#991b32;background:#fff0f2;border-color:#ca7384;font-weight:750}
+.dialog-head .square:hover,.task .square:hover,#toast-close:hover{color:#fff;background:#a91f39;border-color:#a91f39}
+#new-event{padding:5px 8px;font-size:.78rem}
+@media(max-width:540px){
+  #editor .event-schedule{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .event-location{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+}
+@media(max-width:380px){
+  .month-controls{gap:3px}
+  #new-event{padding-inline:5px}
+}

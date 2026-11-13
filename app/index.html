@@ -38,7 +38,7 @@
         </div>
       </details>
     </nav>
-    <div class="account-actions"><button type="button" class="plain" id="manage-users" hidden><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-4m-3-12a4 4 0 0 1 0 8"/><circle cx="9" cy="7" r="4"/></svg>Utenti</button><button type="button" class="danger-outline" id="logout"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3m10-8h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Esci</button><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div>
+    <div class="account-actions"><button type="button" class="plain" id="manage-users" hidden><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-4m-3-12a4 4 0 0 1 0 8"/><circle cx="9" cy="7" r="4"/></svg>Utenti</button><button type="button" class="danger-outline" id="logout"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3m10-8h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Esci</button></div>
   </div>
 </header>
 <main class="wrap">
@@ -59,7 +59,7 @@
       <div class="panel-head"><div><p class="eyebrow">PROGRAMMA</p><h2>Calendario</h2></div>
         <div class="calendar-period"><label>Mese<select id="calendar-month"></select></label><form id="year-form"><label>Anno<input id="calendar-year" type="number" min="1" max="9999" step="1" required></label><button class="plain">Vai</button></form></div>
       </div>
-      <div class="monthbar"><h3 id="month-title"></h3><div class="month-controls"><button id="today" class="plain">Oggi</button><button class="square" id="prev" aria-label="Mese precedente">‹</button><button class="square" id="next" aria-label="Mese successivo">›</button></div></div>
+      <div class="monthbar"><h3 id="month-title"></h3><div class="month-controls"><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button><button id="today" class="plain">Oggi</button><button class="square" id="prev" aria-label="Mese precedente">‹</button><button class="square" id="next" aria-label="Mese successivo">›</button></div></div>
       <div class="weekdays" aria-hidden="true"><span>Lun</span><span>Mar</span><span>Mer</span><span>Gio</span><span>Ven</span><span>Sab</span><span>Dom</span></div>
       <div id="days" class="days" aria-labelledby="month-title"></div>
       <div id="month-events"></div>
@@ -84,9 +84,9 @@
     </nav>
   </div>
 </footer>
-<dialog id="editor" aria-labelledby="edit-title">
+<dialog id="editor" aria-labelledby="editor-label">
   <form id="event-form">
-    <div class="dialog-head"><div><p class="eyebrow">SCHEDA EVENTO</p><h2 id="edit-title"></h2></div><button type="button" class="square" id="close-editor" aria-label="Chiudi">×</button></div>
+    <div class="dialog-head"><div class="editor-heading"><p class="eyebrow" id="editor-label">Scheda evento</p><h2 id="edit-title"></h2><input type="text" name="title" id="event-title" aria-label="Titolo evento" placeholder="Titolo del nuovo evento" maxlength="5000" required hidden disabled></div><button type="button" class="square" id="close-editor" aria-label="Chiudi">×</button></div>
     <div id="details"></div>
     <div class="dialog-footer"><p id="form-message" role="alert"></p><button type="button" class="plain" id="cancel">Chiudi</button><button type="button" class="primary" id="edit-event" hidden>Modifica</button><button class="primary success" id="save">Salva</button></div>
   </form>

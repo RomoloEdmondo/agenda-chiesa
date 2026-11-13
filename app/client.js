@@ -116,7 +116,7 @@ function render() {
   const list = sorted(events.filter(matches));
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-current',b.dataset.view===view));
   for (const name of ['agenda','prep','team']) $(name).hidden = name!==view;
-  $('new-event').hidden = view==='team' || !mayEdit();
+  $('new-event').hidden = view!=='agenda' || !mayEdit();
   $('date-filters').hidden = $('period-filter').value!=='custom';
   const titles = {
     agenda:['Agenda della comunità','Appuntamenti e preparazione del programma della comunità.'],
@@ -264,32 +264,37 @@ function openEditor(event, editing=view!=='team') {
   active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date:'',end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
   renderEditor(editing);
   $('editor').showModal();
+  if (!event && editing && canSave) $('event-title').focus();
 }
 
 function renderEditor(editing) {
   const readOnly = !editing || !canSave;
   const place = active.place || churchPlace;
   $('edit-event').hidden = !readOnly || !canSave;
+  $('editor-label').textContent = active.title ? 'Scheda evento' : 'Nuovo evento';
   $('edit-title').textContent = active.title || 'Nuovo evento';
+  $('edit-title').hidden = !readOnly;
+  const title = $('event-title');
+  title.hidden = title.disabled = readOnly;
+  title.value = active.title;
   $('form-message').textContent = '';
   $('save').hidden = readOnly;
   if (readOnly) {
-    $('details').innerHTML = '<dl class="readonly">'+fields.map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
+    $('details').innerHTML = '<dl class="readonly">'+fields.filter(([key])=>key!=='title').map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
       escape(key==='place' ? place : (['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
       '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul>';
   } else {
-    $('details').innerHTML = '<div class="fields">'+fields.map(([key,label,kind])=>{
+    function renderField([key,label,kind]) {
       const value = escape(active[key]);
       if (key==='date') {
-        return '<div class="event-schedule wide">'+
-          '<label>Data di inizio<input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>'+
-          '<details'+(active.end?' open':'')+'><summary>Data di fine</summary><label class="event-end-input">'+
-          '<input type="date" name="end" aria-label="Data di fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+escape(active.end)+'"></label></details>'+
-          '<label>Orario<input type="time" name="time" value="'+escape(active.time)+'"></label></div>';
+        return '<label>Data di inizio<input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
       }
-      if (key==='end' || key==='time') return '';
+      if (key==='end') {
+        return '<details'+(active.end?' open':'')+'><summary>Data di fine</summary><label class="event-end-input">'+
+          '<input type="date" name="end" aria-label="Data di fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+value+'"></label></details>';
+      }
       if (key==='place') {
-        return '<div class="event-place wide"><label for="event-place-input">Luogo</label><div class="event-place-row">'+
+        return '<div class="event-place"><label for="event-place-input">Luogo</label><div class="event-place-row">'+
           '<div id="event-place-preview">'+(place===churchPlace ? '<strong>Christliche Gemeinde Ruchheim</strong> <span aria-hidden="true">·</span> <a href="'+churchMap+
           '" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>' : escape(place))+'</div>'+
           '<input type="text" name="place" id="event-place-input" value="'+escape(place)+'" maxlength="5000" hidden>'+
@@ -314,7 +319,12 @@ function renderEditor(editing) {
         : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
         : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
-    }).join('')+'</div><section class="tasks"><h3>Checklist</h3><div id="task-list"></div><button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
+    }
+    const field = key => renderField(fields.find(([name])=>name===key));
+    $('details').innerHTML = '<div class="fields"><div class="event-schedule wide">'+
+      ['type','date','end','time'].map(field).join('')+'</div><div class="event-location wide">'+
+      ['place','status'].map(field).join('')+'</div>'+
+      ['responsible','speaker','description','materials'].map(field).join('')+'</div><section class="tasks"><h3>Checklist</h3><div id="task-list"></div><button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
     const placeInput = $('event-place-input');
     $('edit-place').onclick = () => {
       $('event-place-preview').hidden = true;
