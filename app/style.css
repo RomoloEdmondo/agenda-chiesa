@@ -132,3 +132,14 @@
   .month-controls{gap:3px}
   #new-event{padding-inline:5px}
 }
+
+#catalog-dialog{width:min(536px,calc(80% - 16px))}
+#catalog-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+#catalog-form:not(:has(#catalog-last-label:not([hidden]))){grid-template-columns:minmax(0,1fr)}
+#catalog-save{grid-column:1/-1}
+.day{position:relative}
+.day-add{position:absolute;inset:0;width:100%;border:0;background:transparent;padding:0}
+.day-add:hover{background:#17577d12}
+.day-add:focus-visible{outline-offset:-2px}
+.day:has(.day-add) .day-number{pointer-events:none}
+.day .chip{position:relative}

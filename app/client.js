@@ -74,7 +74,9 @@ function renderCalendar(list) {
     const chips = monthEvents.filter(e=>e.date<=date && (e.end||e.date)>=date).map(e=>
       '<button type="button" class="chip" data-type="'+escape(e.type)+'" data-event="'+escape(e.id)+'" title="'+escape(e.title)+'" aria-label="'+
       escape(e.title+' · '+format(date,{day:'numeric',month:'long'}))+'">'+escape(e.title)+'</button>').join('');
-    return '<div class="day'+(date===today?' today':'')+'"><span class="day-number"'+(date===today?' aria-current="date"':'')+'>'+day+'</span>'+chips+'</div>';
+    const add = canSave ? '<button type="button" class="day-add" data-new-date="'+date+
+      '" aria-label="'+escape('Nuovo evento, '+format(date,{day:'numeric',month:'long',year:'numeric'}))+'"></button>' : '';
+    return '<div class="day'+(date===today?' today':'')+'">'+add+'<span class="day-number"'+(date===today?' aria-current="date"':'')+'>'+day+'</span>'+chips+'</div>';
   }).join('');
   $('month-events').innerHTML = monthEvents.length ? monthEvents.map(e=>eventButton(e,Number(e.date.slice(8))+' '+format(e.date,{month:'short'})+' · '+e.title)).join('') : '<span>Nessun appuntamento nel mese selezionato.</span>';
   const upcoming = list.filter(e=>e.date && (e.end||e.date)>=today && !closed(e));
@@ -260,8 +262,8 @@ const churchAddress = 'Oggersheimer Str. 2, 67071 Ludwigshafen';
 const churchPlace = 'Christliche Gemeinde Ruchheim · '+churchAddress;
 const churchMap = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(churchAddress);
 
-function openEditor(event, editing=view!=='team') {
-  active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date:'',end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
+function openEditor(event, editing=view!=='team', date='') {
+  active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date,end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
   renderEditor(editing);
   $('editor').showModal();
   if (!event && editing && canSave) $('event-title').focus();
@@ -491,7 +493,7 @@ $('edit-event').onclick = () => {
 };
 $('event-form').onsubmit = save;
 document.addEventListener('click',event=>{
-  const control = event.target.closest('button[data-view],button[data-event]');
+  const control = event.target.closest('button[data-view],button[data-event],button[data-new-date]');
   if (!control) return;
   if (control.dataset.view) {
     const target = new URL(location.href);
@@ -500,6 +502,7 @@ document.addEventListener('click',event=>{
     history.replaceState(null,'',target);
     selectView();
   }
+  if (control.dataset.newDate && canSave) openEditor(undefined,true,control.dataset.newDate);
   if (control.dataset.event) {
     const item = events.find(e=>e.id===control.dataset.event);
     if (item) openEditor(item);
@@ -526,6 +529,7 @@ async function load() {
     }
     canSave = mayEdit();
     $('new-event').disabled = !canSave;
+    if (view==='agenda') render();
   } catch {
     notice('Impossibile caricare il calendario. Riprova tra poco.');
   }
