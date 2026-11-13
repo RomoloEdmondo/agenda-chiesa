@@ -87,13 +87,16 @@ function renderCalendar(list) {
 }
 
 function renderPrep(list) {
-  const pending = list.filter(e=>!closed(e) && (!e.date || (e.end||e.date)>=today || $('period-filter').value==='past'))
-    .map(event=>({event,tasks:event.tasks.filter(task=>!task.done)})).filter(item=>item.tasks.length || item.event.status!=='Pronto');
-  const total = pending.reduce((sum,item)=>sum+item.tasks.length,0);
-  $('prep').innerHTML = '<div class="panel-head"><div><h2>Attività da preparare</h2><p class="muted">'+total+' attività aperte · '+pending.length+' appuntamenti da seguire</p></div></div>'+
-    (pending.length ? '<div class="prep-list">'+pending.map(({event,tasks})=>'<article class="prep-card">'+eventButton(event,event.title)+
+  const cards = list.map(event=>({
+    event,tasks:closed(event)?[]:event.tasks.filter(task=>!task.done)
+  }));
+  const total = cards.reduce((sum,item)=>sum+item.tasks.length,0);
+  const tracked = cards.filter(({event,tasks})=>!closed(event) && (tasks.length || event.status!=='Pronto')).length;
+  $('prep').innerHTML = '<div class="panel-head"><div><h2>Attività da preparare</h2><p class="muted">'+total+' attività aperte · '+tracked+' appuntamenti da seguire</p></div></div>'+
+    (cards.length ? '<div class="prep-list">'+cards.map(({event,tasks})=>'<article class="prep-card" data-status="'+escape(event.status)+'">'+
+      (event.status==='Annullato'?'<span class="prep-cancelled" aria-hidden="true">×</span>':'')+eventButton(event,event.title)+
       '<p class="muted">'+escape(dateLabel(event)+' · '+event.status+(event.responsible?' · '+event.responsible:''))+'</p>'+
-      (tasks.length?'<ul>'+tasks.map(task=>'<li>'+escape(task.label)+'</li>').join('')+'</ul>':'')+'</article>').join('')+'</div>' : empty('Nessuna attività aperta con questi filtri.'));
+      (tasks.length?'<ul>'+tasks.map(task=>'<li>'+escape(task.label)+'</li>').join('')+'</ul>':'')+'</article>').join('')+'</div>' : empty('Nessun appuntamento con questi filtri.'));
 }
 
 function renderTeam(list) {

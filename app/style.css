@@ -65,7 +65,7 @@
 .hero h1{font-size:clamp(1.7rem,3vw,2.55rem);line-height:1.13}
 .hero p:last-child{margin-top:5px}
 .hero-logo{flex:none;object-fit:contain;background:#fff;border-radius:10px;padding:6px}
-#notice.toast{position:fixed;z-index:10;right:18px;bottom:18px;display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100vw - 36px);margin:0;padding:8px 8px 8px 14px;background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--green);box-shadow:0 6px 24px #172d3d28}
+#notice.toast{position:fixed;z-index:10;right:18px;top:18px;display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100vw - 36px);margin:0;padding:8px 8px 8px 14px;background:rgba(255,255,255,.89);color:#172d3d;backdrop-filter:blur(12px);border:1px solid var(--line);border-left:4px solid var(--green);box-shadow:0 6px 24px #172d3d28}
 #toast-close{font-size:1.25rem}
 @media(max-width:560px){
   .top-inner{gap:8px}
@@ -143,3 +143,10 @@
 .day-add:focus-visible{outline-offset:-2px}
 .day:has(.day-add) .day-number{pointer-events:none}
 .day .chip{position:relative}
+
+.brand-logo{mix-blend-mode:multiply;border-radius:0}
+.prep-card[data-status="Pronto"]{background:#3e96321c;border-color:#78a66f}
+.prep-card[data-status="Da verificare"]{border:1px dashed #718a9a}
+.prep-card[data-status="Da preparare"]{background:#e3ae2026;border-color:#cda44b}
+.prep-card[data-status="Annullato"]{position:relative;padding-right:35px}
+.prep-cancelled{position:absolute;top:9px;right:11px;color:#a91f39;font-size:1.3rem;font-weight:750;line-height:1}
