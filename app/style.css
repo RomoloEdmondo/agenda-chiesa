@@ -17,3 +17,5 @@
 #catalog-list{padding:0;margin:10px 0 0;list-style:none}
 #catalog-list li{border-bottom:1px solid var(--line);padding:8px 0;overflow-wrap:anywhere}
 #catalog-message{margin-top:10px}
+
+.event-choice{display:grid;gap:5px;align-content:start;min-width:0}

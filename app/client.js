@@ -140,23 +140,62 @@ const catalogName = entry => [entry.firstName,entry.lastName].filter(Boolean).jo
 const nameKey = value => value.trim().normalize('NFC').replace(/\s+/g,' ').toLocaleLowerCase('it');
 
 function catalogNames(kind) {
-  const saved = catalog.filter(entry=>entry.kind===kind).map(catalogName);
+  const entries = catalog.filter(entry=>entry.kind===kind);
   const names = kind==='type' ? [...types,...events.map(event=>event.type)] : events.flatMap(speakers);
-  return [...new Set([...names,...saved])].sort((a,b)=>a.localeCompare(b,'it'));
+  const byKey = new Map(names.filter(Boolean).map(name=>[nameKey(name),name]));
+  for (const entry of entries) {
+    const name = catalogName(entry);
+    if (entry.removed) byKey.delete(nameKey(name));
+    else byKey.set(nameKey(name),name);
+  }
+  return [...byKey.values()].sort((a,b)=>a.localeCompare(b,'it'));
 }
 
 function fillTypes(selected=$('type-filter').value) {
   const filter = $('type-filter');
-  const names = catalogNames('type');
+  const names = [...new Set([...catalogNames('type'),...events.map(event=>event.type).filter(Boolean)])]
+    .sort((a,b)=>a.localeCompare(b,'it'));
   filter.innerHTML = option('','Tutti i tipi')+names.map(name=>option(name)).join('');
   filter.value = names.includes(selected) ? selected : '';
 }
 
 function renderCatalog() {
   const names = catalogNames(catalogKind);
-  $('catalog-list').innerHTML = names.length ? names.map(name=>'<li>'+escape(name)+'</li>').join('')
-    : '<li class="muted">Nessuna voce presente.</li>';
+  $('catalog-list').innerHTML = names.length ? names.map(name=>'<li class="account-row"><span>'+escape(name)+
+    '</span><button type="button" class="plain" data-remove="'+escape(name)+'" aria-label="Rimuovi '+escape(name)+
+    '">Rimuovi</button></li>').join('') : '<li class="muted">Nessuna voce presente.</li>';
 }
+
+function updateCatalog(entry) {
+  catalog = catalog.filter(item=>item.kind!==entry.kind || nameKey(catalogName(item))!==nameKey(catalogName(entry)));
+  catalog.push(entry);
+  fillTypes();
+  render();
+  renderCatalog();
+}
+
+function catalogBusy(busy) {
+  $('catalog-save').disabled = busy;
+  $('catalog-dialog').querySelector('[method="dialog"] button').disabled = busy;
+  $('catalog-list').querySelectorAll('button').forEach(button=>button.disabled=busy);
+}
+
+$('catalog-list').onclick = async event => {
+  const button = event.target.closest('button[data-remove]');
+  if (!button || $('catalog-save').disabled) return;
+  const name = button.dataset.remove;
+  if (!window.confirm('Rimuovere «'+name+'» dalle scelte? Gli eventi già salvati conserveranno il valore.')) return;
+  catalogBusy(true);
+  try {
+    updateCatalog(await jsonApi('/api/catalog',{kind:catalogKind,firstName:name,remove:true}));
+    $('catalog-message').textContent = 'Voce rimossa.';
+    $('catalog-add').focus();
+  } catch (error) {
+    $('catalog-message').textContent = error.message;
+  } finally {
+    catalogBusy(false);
+  }
+};
 
 function openCatalog(kind) {
   catalogKind = kind;
@@ -195,14 +234,10 @@ $('catalog-form').onsubmit = async event => {
     $('catalog-message').textContent = 'Questa voce è già presente.';
     return;
   }
-  $('catalog-save').disabled = true;
-  $('catalog-dialog').querySelector('[method="dialog"] button').disabled = true;
+  catalogBusy(true);
   $('catalog-message').textContent = '';
   try {
-    catalog.push(await jsonApi('/api/catalog',data));
-    fillTypes();
-    render();
-    renderCatalog();
+    updateCatalog(await jsonApi('/api/catalog',data));
     form.reset();
     form.hidden = true;
     $('catalog-add').setAttribute('aria-expanded','false');
@@ -211,8 +246,7 @@ $('catalog-form').onsubmit = async event => {
   } catch (error) {
     $('catalog-message').textContent = error.message;
   } finally {
-    $('catalog-save').disabled = false;
-    $('catalog-dialog').querySelector('[method="dialog"] button').disabled = false;
+    catalogBusy(false);
   }
 };
 
@@ -224,7 +258,7 @@ const fields = [
 ];
 
 function openEditor(event, editing=view!=='team') {
-  active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'Culto',status:'Da preparare',date:'',end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
+  active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date:'',end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
   renderEditor(editing);
   $('editor').showModal();
 }
@@ -243,17 +277,24 @@ function renderEditor(editing) {
     $('details').innerHTML = '<div class="fields">'+fields.map(([key,label,kind])=>{
       const value = escape(active[key]);
       if (kind==='suggestions') {
-        const listId = key+'-suggestions';
-        const input = '<input type="text" name="'+key+'" list="'+listId+'" maxlength="5000" value="'+value+'"'+
-          (key==='type'?' required':' placeholder="Facoltativo"')+'>';
-        return '<label>'+label+input+'</label><datalist id="'+listId+'">'+
-          catalogNames(key).map(name=>option(name)).join('')+'</datalist>';
+        const names = catalogNames(key);
+        return '<div class="event-choice"><label>'+label+'<input type="text" name="'+key+
+          '" maxlength="5000" value="'+value+'"'+(key==='type'?' required':'')+
+          ' placeholder="Scrivi qui"></label><select data-choose="'+key+'" aria-label="Scegli '+label+
+          ' dall’elenco"'+(names.length?'':' disabled')+'>'+option('','Scegli dall’elenco')+
+          names.map(name=>option(name)).join('')+'</select></div>';
       }
       const field = kind==='select' ? '<select name="'+key+'">'+statuses.map(v=>option(v,v,v===active[key])).join('')+'</select>'
         : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
         : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
     }).join('')+'</div><section class="tasks"><h3>Checklist</h3><div id="task-list"></div><button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
+    $('details').querySelectorAll('[data-choose]').forEach(select=>{
+      select.onchange = () => {
+        if (select.value) $('event-form').elements[select.dataset.choose].value = select.value;
+        select.selectedIndex = 0;
+      };
+    });
     for (const task of active.tasks) addTask(task);
     $('add-task').onclick = () => {
       if ($('task-list').children.length<80) addTask({label:'',done:false}).focus();
