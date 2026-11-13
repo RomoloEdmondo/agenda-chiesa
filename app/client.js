@@ -47,7 +47,7 @@ function matches(event) {
 function row(event, team=false) {
   const day = event.date ? Number(event.date.slice(8)) : '–';
   const label = event.date ? format(event.date,{month:'short'}) : 'Data';
-  const notes = [event.time,event.place,event.speaker].filter(Boolean).join(' · ');
+  const notes = [event.time,team ? event.place : "",event.speaker].filter(Boolean).join(' · ');
   const extra = team ? '<small>'+escape([event.responsible,event.status].filter(Boolean).join(' · '))+'</small>' : '';
   return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
     '<span class="row-copy"><span class="row-type">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong><small>'+
@@ -250,9 +250,9 @@ $('catalog-form').onsubmit = async event => {
 };
 
 const fields = [
-  ['title','Titolo','text'],['type','Tipo di evento','suggestions'],['date','Data di inizio','date'],
-  ['end','Data di fine','date'],['time','Orario','time'],['place','Luogo','text'],
-  ['responsible','Responsabili','text'],['speaker','Relatore','suggestions'],
+  ['title','Titolo','text'],['type','Tipo evento','suggestions'],['date','Data inizio','date'],
+  ['end','Data fine','date'],['time','Orario','time'],['place','Luogo','text'],
+  ['responsible','Guida/Conduzione','text'],['speaker','Relatore','suggestions'],
   ['status','Stato di preparazione','select'],['description','Descrizione','textarea'],['materials','Materiali e link','textarea']
 ];
 
@@ -287,11 +287,11 @@ function renderEditor(editing) {
     function renderField([key,label,kind]) {
       const value = escape(active[key]);
       if (key==='date') {
-        return '<label>Data di inizio<input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
+        return '<label>Data inizio<input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
       }
       if (key==='end') {
-        return '<details'+(active.end?' open':'')+'><summary>Data di fine</summary><label class="event-end-input">'+
-          '<input type="date" name="end" aria-label="Data di fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+value+'"></label></details>';
+        return '<details'+(active.end?' open':'')+'><summary>Data fine</summary><label class="event-end-input">'+
+          '<input type="date" name="end" aria-label="Data fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+value+'"></label></details>';
       }
       if (key==='place') {
         return '<div class="event-place"><label for="event-place-input">Luogo</label><div class="event-place-row">'+
