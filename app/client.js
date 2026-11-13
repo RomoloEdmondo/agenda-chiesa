@@ -120,7 +120,7 @@ function render() {
   const titles = {
     agenda:['Agenda della comunità','Appuntamenti e preparazione del programma della comunità.'],
     prep:['Preparazione','Checklist e responsabilità per gli appuntamenti in programma.'],
-    team:['Vista team','Programma della comunità in sola lettura.']
+    team:['Vista team','Programma della comunità.']
   };
   $('page-title').textContent = titles[view][0];
   $('page-subtitle').textContent = titles[view][1];
@@ -217,15 +217,21 @@ $('catalog-form').onsubmit = async event => {
 };
 
 const fields = [
-  ['title','Titolo','text'],['type','Tipo di evento','select'],['date','Data di inizio','date'],
+  ['title','Titolo','text'],['type','Tipo di evento','suggestions'],['date','Data di inizio','date'],
   ['end','Data di fine','date'],['time','Orario (Berlino)','time'],['place','Luogo','text'],
-  ['responsible','Responsabili','text'],['speaker','Relatore','select'],
+  ['responsible','Responsabili','text'],['speaker','Relatore','suggestions'],
   ['status','Stato di preparazione','select'],['description','Descrizione','textarea'],['materials','Materiali e link','textarea']
 ];
 
-function openEditor(event) {
-  const readOnly = view==='team' || !canSave;
+function openEditor(event, editing=view!=='team') {
   active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'Culto',status:'Da preparare',date:'',end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
+  renderEditor(editing);
+  $('editor').showModal();
+}
+
+function renderEditor(editing) {
+  const readOnly = !editing || !canSave;
+  $('edit-event').hidden = !readOnly || !canSave;
   $('edit-title').textContent = active.title || 'Nuovo evento';
   $('form-message').textContent = '';
   $('save').hidden = readOnly;
@@ -234,11 +240,16 @@ function openEditor(event) {
       escape((['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
       '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul>';
   } else {
-    const choices = {type:catalogNames('type'),speaker:['',...catalogNames('speaker')],status:statuses};
-    if (active.speaker && !choices.speaker.includes(active.speaker)) choices.speaker.push(active.speaker);
     $('details').innerHTML = '<div class="fields">'+fields.map(([key,label,kind])=>{
       const value = escape(active[key]);
-      const field = kind==='select' ? '<select name="'+key+'">'+choices[key].map(v=>option(v,v || 'Nessun relatore',v===active[key])).join('')+'</select>'
+      if (kind==='suggestions') {
+        const listId = key+'-suggestions';
+        const input = '<input type="text" name="'+key+'" list="'+listId+'" maxlength="5000" value="'+value+'"'+
+          (key==='type'?' required':' placeholder="Facoltativo"')+'>';
+        return '<label>'+label+input+'</label><datalist id="'+listId+'">'+
+          catalogNames(key).map(name=>option(name)).join('')+'</datalist>';
+      }
+      const field = kind==='select' ? '<select name="'+key+'">'+statuses.map(v=>option(v,v,v===active[key])).join('')+'</select>'
         : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
         : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
@@ -248,7 +259,6 @@ function openEditor(event) {
       if ($('task-list').children.length<80) addTask({label:'',done:false}).focus();
     };
   }
-  $('editor').showModal();
 }
 
 function addTask(task) {
@@ -361,6 +371,11 @@ $('new-event').disabled = true;
 $('new-event').onclick = () => openEditor();
 $('close-editor').onclick = $('cancel').onclick = () => { if (!$('save').disabled) $('editor').close(); };
 $('editor').addEventListener('cancel',event=>{ if ($('save').disabled) event.preventDefault(); });
+$('edit-event').onclick = () => {
+  if (!canSave) return;
+  renderEditor(true);
+  $('event-form').elements.title.focus();
+};
 $('event-form').onsubmit = save;
 document.addEventListener('click',event=>{
   const control = event.target.closest('button[data-view],button[data-event]');
