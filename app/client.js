@@ -251,10 +251,14 @@ $('catalog-form').onsubmit = async event => {
 
 const fields = [
   ['title','Titolo','text'],['type','Tipo di evento','suggestions'],['date','Data di inizio','date'],
-  ['end','Data di fine','date'],['time','Orario (Berlino)','time'],['place','Luogo','text'],
+  ['end','Data di fine','date'],['time','Orario','time'],['place','Luogo','text'],
   ['responsible','Responsabili','text'],['speaker','Relatore','suggestions'],
   ['status','Stato di preparazione','select'],['description','Descrizione','textarea'],['materials','Materiali e link','textarea']
 ];
+
+const churchAddress = 'Oggersheimer Str. 2, 67071 Ludwigshafen';
+const churchPlace = 'Christliche Gemeinde Ruchheim · '+churchAddress;
+const churchMap = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(churchAddress);
 
 function openEditor(event, editing=view!=='team') {
   active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date:'',end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
@@ -264,17 +268,37 @@ function openEditor(event, editing=view!=='team') {
 
 function renderEditor(editing) {
   const readOnly = !editing || !canSave;
+  const place = active.place || churchPlace;
   $('edit-event').hidden = !readOnly || !canSave;
   $('edit-title').textContent = active.title || 'Nuovo evento';
   $('form-message').textContent = '';
   $('save').hidden = readOnly;
   if (readOnly) {
     $('details').innerHTML = '<dl class="readonly">'+fields.map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
-      escape((['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
+      escape(key==='place' ? place : (['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
       '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul>';
   } else {
     $('details').innerHTML = '<div class="fields">'+fields.map(([key,label,kind])=>{
       const value = escape(active[key]);
+      if (key==='date') {
+        return '<div class="event-schedule wide">'+
+          '<label>Data di inizio<input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>'+
+          '<details'+(active.end?' open':'')+'><summary>Data di fine</summary><label class="event-end-input">'+
+          '<input type="date" name="end" aria-label="Data di fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+escape(active.end)+'"></label></details>'+
+          '<label>Orario<input type="time" name="time" value="'+escape(active.time)+'"></label></div>';
+      }
+      if (key==='end' || key==='time') return '';
+      if (key==='place') {
+        return '<div class="event-place wide"><label for="event-place-input">Luogo</label><div class="event-place-row">'+
+          '<div id="event-place-preview">'+(place===churchPlace ? '<strong>Christliche Gemeinde Ruchheim</strong><br><a href="'+churchMap+
+          '" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>' : escape(place))+'</div>'+
+          '<input type="text" name="place" id="event-place-input" value="'+escape(place)+'" maxlength="5000" hidden>'+
+          '<button type="button" id="edit-place" class="icon-button" aria-label="Modifica luogo" title="Modifica luogo">✎</button></div></div>';
+      }
+      if (key==='materials') {
+        return '<details class="event-materials wide"><summary>Materiali e link'+(active.materials?' · presenti':'')+
+          '</summary><textarea name="materials" aria-label="Materiali e link" rows="3" maxlength="5000">'+value+'</textarea></details>';
+      }
       if (kind==='suggestions') {
         const names = catalogNames(key);
         return '<div class="event-choice"><label for="event-'+key+'">'+label+'</label>'+
@@ -291,6 +315,16 @@ function renderEditor(editing) {
         : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
     }).join('')+'</div><section class="tasks"><h3>Checklist</h3><div id="task-list"></div><button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
+    const placeInput = $('event-place-input');
+    $('edit-place').onclick = () => {
+      $('event-place-preview').hidden = true;
+      $('edit-place').hidden = true;
+      placeInput.hidden = false;
+      placeInput.focus();
+    };
+    const {date,end} = $('event-form').elements;
+    date.onchange = () => { end.min = date.value || '0001-01-01'; };
+    end.oninvalid = () => { end.closest('details').open = true; };
     $('details').querySelectorAll('.event-choice').forEach(choice=>{
       const input = choice.querySelector('input');
       const toggle = choice.querySelector('.choice-toggle');
@@ -342,6 +376,7 @@ async function save(event) {
   event.preventDefault();
   if (!canSave || $('save').hidden || $('save').disabled) return;
   const data = Object.fromEntries(new FormData(event.target));
+  data.place = data.place.trim() || churchPlace;
   data.tasks = [...$('task-list').children].map(item=>({
     label:item.querySelector('input[type=text]').value.trim(),
     done:item.querySelector('input[type=checkbox]').checked
