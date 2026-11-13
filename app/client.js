@@ -1,4 +1,4 @@
-import {apiFetch, mayEdit} from './session.js';
+import {apiFetch, isAdmin, jsonApi, mayEdit} from './session.js';
 import {types, statuses} from './event-types.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({
@@ -29,13 +29,11 @@ const eventButton = (event, label, className='plain') => '<button type="button" 
 
 function matches(event) {
   const type = $('type-filter').value;
-  const speaker = $('speaker-filter').value;
   const period = $('period-filter').value;
   const from = $('from').value;
   const to = $('to').value;
   const end = event.end || event.date;
   if (type && event.type !== type) return false;
-  if (speaker && !speakers(event).includes(speaker)) return false;
   if (period === 'undated') return !event.date;
   if (!period) return true;
   if (!event.date) return false;
@@ -101,10 +99,11 @@ function renderTeam(list) {
     (list.map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'));
   $('copy-link').onclick = async () => {
     const link = new URL(location.href);
-    for (const id of ['type-filter','speaker-filter','period-filter','from','to']) {
+    for (const id of ['type-filter','period-filter','from','to']) {
       if ($(id).value) link.searchParams.set(id,$(id).value);
       else link.searchParams.delete(id);
     }
+    link.searchParams.delete('speaker-filter');
     link.hash = 'team';
     try { await navigator.clipboard.writeText(link.href); notice('Link copiato. Si apre per chi ha accesso al Site.'); }
     catch { window.prompt('Copia il link della vista team',link.href); }
@@ -135,15 +134,92 @@ function notice(message) {
   $('notice').textContent = message;
 }
 
-function fillSpeakers(selected=$('speaker-filter').value) {
-  const names = [...new Set(events.flatMap(speakers))].sort((a,b)=>a.localeCompare(b,'it'));
-  $('speaker-filter').innerHTML = option('','Tutti i relatori')+names.map(name=>option(name,name,name===selected)).join('');
+let catalog = [];
+let catalogKind;
+const catalogName = entry => [entry.firstName,entry.lastName].filter(Boolean).join(' ');
+const nameKey = value => value.trim().normalize('NFC').replace(/\s+/g,' ').toLocaleLowerCase('it');
+
+function catalogNames(kind) {
+  const saved = catalog.filter(entry=>entry.kind===kind).map(catalogName);
+  const names = kind==='type' ? [...types,...events.map(event=>event.type)] : events.flatMap(speakers);
+  return [...new Set([...names,...saved])].sort((a,b)=>a.localeCompare(b,'it'));
 }
+
+function fillTypes(selected=$('type-filter').value) {
+  const filter = $('type-filter');
+  const names = catalogNames('type');
+  filter.innerHTML = option('','Tutti i tipi')+names.map(name=>option(name)).join('');
+  filter.value = names.includes(selected) ? selected : '';
+}
+
+function renderCatalog() {
+  const names = catalogNames(catalogKind);
+  $('catalog-list').innerHTML = names.length ? names.map(name=>'<li>'+escape(name)+'</li>').join('')
+    : '<li class="muted">Nessuna voce presente.</li>';
+}
+
+function openCatalog(kind) {
+  catalogKind = kind;
+  const isSpeaker = kind==='speaker';
+  $('catalog-menu').open = false;
+  $('catalog-title').textContent = isSpeaker ? 'Relatori' : 'Tipi di evento';
+  $('catalog-first-label').textContent = isSpeaker ? 'Nome' : 'Nome del tipo di evento';
+  $('catalog-last-label').hidden = !isSpeaker;
+  $('catalog-form').elements.lastName.required = isSpeaker;
+  $('catalog-form').reset();
+  $('catalog-form').hidden = true;
+  $('catalog-add').setAttribute('aria-expanded','false');
+  $('catalog-message').textContent = '';
+  renderCatalog();
+  $('catalog-dialog').showModal();
+}
+
+document.querySelectorAll('[data-catalog]').forEach(button=>{
+  button.onclick = () => openCatalog(button.dataset.catalog);
+});
+$('catalog-add').onclick = () => {
+  $('catalog-form').hidden = false;
+  $('catalog-add').setAttribute('aria-expanded','true');
+  $('catalog-form').elements.firstName.focus();
+};
+$('catalog-dialog').addEventListener('cancel',event=>{
+  if ($('catalog-save').disabled) event.preventDefault();
+});
+$('catalog-form').onsubmit = async event => {
+  event.preventDefault();
+  if ($('catalog-save').disabled) return;
+  const form = event.currentTarget;
+  const data = {kind:catalogKind,...Object.fromEntries(new FormData(form))};
+  const label = catalogName({...data,lastName:catalogKind==='speaker' ? data.lastName : ''});
+  if (catalogNames(catalogKind).some(name=>nameKey(name)===nameKey(label))) {
+    $('catalog-message').textContent = 'Questa voce è già presente.';
+    return;
+  }
+  $('catalog-save').disabled = true;
+  $('catalog-dialog').querySelector('[method="dialog"] button').disabled = true;
+  $('catalog-message').textContent = '';
+  try {
+    catalog.push(await jsonApi('/api/catalog',data));
+    fillTypes();
+    render();
+    renderCatalog();
+    form.reset();
+    form.hidden = true;
+    $('catalog-add').setAttribute('aria-expanded','false');
+    $('catalog-add').focus();
+    $('catalog-message').textContent = 'Voce aggiunta.';
+  } catch (error) {
+    $('catalog-message').textContent = error.message;
+  } finally {
+    $('catalog-save').disabled = false;
+    $('catalog-dialog').querySelector('[method="dialog"] button').disabled = false;
+  }
+};
 
 const fields = [
   ['title','Titolo','text'],['type','Tipo di evento','select'],['date','Data di inizio','date'],
   ['end','Data di fine','date'],['time','Orario (Berlino)','time'],['place','Luogo','text'],
-  ['responsible','Responsabili','text'],['speaker','Relatore o relatori','text'],
+  ['responsible','Responsabili','text'],['speaker','Relatore','select'],
   ['status','Stato di preparazione','select'],['description','Descrizione','textarea'],['materials','Materiali e link','textarea']
 ];
 
@@ -158,9 +234,11 @@ function openEditor(event) {
       escape((['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
       '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul>';
   } else {
+    const choices = {type:catalogNames('type'),speaker:['',...catalogNames('speaker')],status:statuses};
+    if (active.speaker && !choices.speaker.includes(active.speaker)) choices.speaker.push(active.speaker);
     $('details').innerHTML = '<div class="fields">'+fields.map(([key,label,kind])=>{
       const value = escape(active[key]);
-      const field = kind==='select' ? '<select name="'+key+'">'+(key==='type'?types:statuses).map(v=>option(v,v,v===active[key])).join('')+'</select>'
+      const field = kind==='select' ? '<select name="'+key+'">'+choices[key].map(v=>option(v,v || 'Nessun relatore',v===active[key])).join('')+'</select>'
         : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
         : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
@@ -202,7 +280,7 @@ async function save(event) {
     const selectedPeriod = $('period-filter').value;
     if (saved.date && view==='agenda') month = saved.date.slice(0,7);
     $('editor').close();
-    fillSpeakers();
+    fillTypes();
     fillPeriods(isYear(selectedPeriod) && view==='agenda' ? month.slice(0,4) : selectedPeriod);
     render();
     notice('Scheda salvata.');
@@ -260,11 +338,10 @@ $('year-form').onsubmit = event => {
   const year = String(Number($('calendar-year').value)).padStart(4,'0');
   if (isYear(year)) navigateMonth(year+'-'+$('calendar-month').value);
 };
-$('type-filter').innerHTML += types.map(type=>option(type)).join('');
-fillSpeakers();
+fillTypes();
 const params = new URLSearchParams(location.search);
 fillPeriods(params.get('period-filter') || '');
-for (const id of ['type-filter','speaker-filter','period-filter','from','to']) {
+for (const id of ['type-filter','period-filter','from','to']) {
   if (params.has(id)) $(id).value = params.get(id);
   $(id).onchange = () => {
     if (id==='period-filter' && isYear($(id).value)) jumpYear($(id).value);
@@ -273,7 +350,7 @@ for (const id of ['type-filter','speaker-filter','period-filter','from','to']) {
 }
 if (isYear($('period-filter').value)) jumpYear($('period-filter').value);
 $('reset').onclick = () => {
-  for (const id of ['type-filter','speaker-filter','period-filter','from','to']) $(id).value='';
+  for (const id of ['type-filter','period-filter','from','to']) $(id).value='';
   render();
 };
 $('today').onclick = () => navigateMonth(nowMonth);
@@ -308,11 +385,19 @@ async function load() {
     const response = await apiFetch('/api/events');
     if (!response.ok) throw new Error('Calendario non disponibile');
     events = await response.json();
-    canSave = mayEdit();
-    $('new-event').disabled = !canSave;
-    fillSpeakers(params.get('speaker-filter') || $('speaker-filter').value);
+    fillTypes(params.get('type-filter') || $('type-filter').value);
     fillPeriods();
     render();
+    try {
+      catalog = await jsonApi('/api/catalog');
+      $('catalog-menu').hidden = !isAdmin();
+      fillTypes(params.get('type-filter') || $('type-filter').value);
+      render();
+    } catch (error) {
+      if (error.status!==404) notice('Impossibile caricare gli elenchi di relatori e tipi di evento.');
+    }
+    canSave = mayEdit();
+    $('new-event').disabled = !canSave;
   } catch {
     notice('Impossibile caricare il calendario. Riprova tra poco.');
   }

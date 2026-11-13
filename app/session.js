@@ -10,6 +10,7 @@ export function setSession(value,user) {
   else sessionStorage.removeItem('ruchheim.session');
 }
 export const currentToken = () => token;
+export const isAdmin = () => role==='admin';
 export const mayEdit = () => ['admin','editor'].includes(role);
 
 export async function apiFetch(path,options={}) {

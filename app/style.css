@@ -6,3 +6,14 @@
 
 .calendar-period,.calendar-period form{display:flex;gap:6px;align-items:end}.calendar-period label{min-width:0}.calendar-period input{width:75px!important}.calendar-period select{width:106px}.calendar-period .plain{padding-inline:6px}.calendar .panel-head{flex-wrap:wrap}
 .account{max-width:440px;margin:8vh auto;padding:24px;width:calc(100% - 24px)}.account h1{font-size:2.8rem}.account form,.account-content form{display:grid;gap:10px;margin:15px 0}.account-actions{display:flex;flex-wrap:wrap;gap:5px}.account-content{padding:0 20px 20px}.account-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}.account-row>div{display:flex;gap:5px;flex-wrap:wrap}#invite-output{margin:10px 0}#login-message,#admin-message{margin-block:10px}
+
+#catalog-menu{position:relative}
+#catalog-menu summary{display:grid;place-items:center;cursor:pointer;list-style:none}
+#catalog-menu summary::-webkit-details-marker{display:none}
+#catalog-menu summary:focus-visible{outline:2px solid #77603f;outline-offset:3px}
+.catalog-menu-items{position:absolute;right:0;top:calc(100% + 5px);z-index:2;min-width:max-content;padding:5px}
+.catalog-menu-items button{display:block;width:100%;text-align:left}
+.catalog-content{padding-top:16px}
+#catalog-list{padding:0;margin:10px 0 0;list-style:none}
+#catalog-list li{border-bottom:1px solid var(--line);padding:8px 0;overflow-wrap:anywhere}
+#catalog-message{margin-top:10px}

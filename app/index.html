@@ -30,7 +30,14 @@
     <nav aria-label="Viste dell’agenda">
       <button data-view="agenda">Calendario</button><button data-view="prep">Preparazione</button><button data-view="team">Vista team</button>
     </nav>
-    <div class="account-actions"><button type="button" class="plain" id="manage-users" hidden>Utenti</button><button type="button" class="plain" id="logout">Esci</button><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div>
+    <div class="account-actions">
+      <details id="catalog-menu" hidden>
+        <summary class="square" aria-label="Menu di gestione">☰</summary>
+        <div class="panel catalog-menu-items">
+          <button type="button" class="plain" data-catalog="speaker">Relatori</button>
+          <button type="button" class="plain" data-catalog="type">Tipi di evento</button>
+        </div>
+      </details><button type="button" class="plain" id="manage-users" hidden>Utenti</button><button type="button" class="plain" id="logout">Esci</button><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div>
   </div>
 </header>
 <main class="wrap">
@@ -42,7 +49,6 @@
   <div id="notice" role="status" hidden></div>
   <section class="filters panel" aria-label="Filtri eventi">
     <label>Tipo di evento<select id="type-filter"><option value="">Tutti i tipi</option></select></label>
-    <label>Relatore<select id="speaker-filter"><option value="">Tutti i relatori</option></select></label>
     <label>Periodo<select id="period-filter"><option value="">Tutto il programma</option><option value="future">Da oggi in poi</option><option value="past">Appuntamenti passati</option><option value="undated">Data da confermare</option><option value="custom">Intervallo personalizzato</option></select></label>
     <div id="date-filters" hidden><label>Dal<input id="from" type="date"></label><label>Al<input id="to" type="date"></label></div>
     <button class="plain" id="reset">Azzera filtri</button>
@@ -72,6 +78,22 @@
     <div id="details"></div>
     <div class="dialog-footer"><p id="form-message" role="alert"></p><button type="button" class="plain" id="cancel">Chiudi</button><button class="primary" id="save">Salva scheda</button></div>
   </form>
+</dialog>
+<dialog id="catalog-dialog" aria-labelledby="catalog-title">
+  <div class="dialog-head">
+    <h2 id="catalog-title"></h2>
+    <form method="dialog"><button class="square" aria-label="Chiudi">×</button></form>
+  </div>
+  <div class="account-content catalog-content">
+    <button type="button" class="primary" id="catalog-add" aria-controls="catalog-form" aria-expanded="false">＋ Aggiungi</button>
+    <form id="catalog-form" hidden>
+      <label><span id="catalog-first-label"></span><input name="firstName" required maxlength="100"></label>
+      <label id="catalog-last-label">Cognome<input name="lastName" maxlength="100"></label>
+      <button class="primary" id="catalog-save">Salva</button>
+    </form>
+    <p id="catalog-message" role="status"></p>
+    <ul id="catalog-list"></ul>
+  </div>
 </dialog>
 <dialog id="user-admin" aria-labelledby="users-title">
   <div class="dialog-head"><h2 id="users-title">Gestione utenti</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
