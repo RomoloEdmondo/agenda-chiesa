@@ -290,7 +290,7 @@ function renderEditor(editing) {
       if (key==='end' || key==='time') return '';
       if (key==='place') {
         return '<div class="event-place wide"><label for="event-place-input">Luogo</label><div class="event-place-row">'+
-          '<div id="event-place-preview">'+(place===churchPlace ? '<strong>Christliche Gemeinde Ruchheim</strong><br><a href="'+churchMap+
+          '<div id="event-place-preview">'+(place===churchPlace ? '<strong>Christliche Gemeinde Ruchheim</strong> <span aria-hidden="true">·</span> <a href="'+churchMap+
           '" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>' : escape(place))+'</div>'+
           '<input type="text" name="place" id="event-place-input" value="'+escape(place)+'" maxlength="5000" hidden>'+
           '<button type="button" id="edit-place" class="icon-button" aria-label="Modifica luogo" title="Modifica luogo">✎</button></div></div>';
@@ -304,7 +304,7 @@ function renderEditor(editing) {
         return '<div class="event-choice"><label for="event-'+key+'">'+label+'</label>'+
           '<div class="choice-control"><input id="event-'+key+'" type="text" name="'+key+
           '" maxlength="5000" value="'+value+'"'+(key==='type'?' required':'')+
-          ' placeholder="'+(key==='type'?'Scegli o scrivi':'Facoltativo')+'">'+
+          (key==='type'?' placeholder="Scegli o scrivi"':'')+'>'+
           '<button type="button" class="icon-button choice-toggle" aria-label="Mostra elenco: '+label+
           '" aria-expanded="false" aria-controls="'+key+'-choices"'+(names.length?'':' disabled')+'></button></div>'+
           '<div class="choice-options" id="'+key+'-choices" hidden>'+

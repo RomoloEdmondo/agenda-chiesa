@@ -38,7 +38,7 @@
         </div>
       </details>
     </nav>
-    <div class="account-actions"><button type="button" class="plain" id="manage-users" hidden>Utenti</button><button type="button" class="plain" id="logout">Esci</button><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div>
+    <div class="account-actions"><button type="button" class="plain" id="manage-users" hidden><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-4m-3-12a4 4 0 0 1 0 8"/><circle cx="9" cy="7" r="4"/></svg>Utenti</button><button type="button" class="danger-outline" id="logout"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3m10-8h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Esci</button><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div>
   </div>
 </header>
 <main class="wrap">
@@ -73,11 +73,22 @@
   <section id="prep" class="panel standalone" hidden></section>
   <section id="team" class="panel standalone" hidden></section>
 </main>
+<footer class="church-footer">
+  <div class="church-footer-inner">
+    <span class="footer-brand"><img src="./simbolo-ruchheim.webp" width="32" height="25" alt="">Chiesa Evangelica Ruchheim</span>
+    <nav aria-label="Link della chiesa">
+      <a href="https://it.cg-ruchheim.de/">Sito della chiesa</a>
+      <a href="mailto:info@cg-ruchheim.de">Email</a>
+      <a href="https://www.instagram.com/ce_ruchheim/reels/">Instagram</a>
+      <a href="https://www.youtube.com/@dioticerca72/videos">YouTube</a>
+    </nav>
+  </div>
+</footer>
 <dialog id="editor" aria-labelledby="edit-title">
   <form id="event-form">
     <div class="dialog-head"><div><p class="eyebrow">SCHEDA EVENTO</p><h2 id="edit-title"></h2></div><button type="button" class="square" id="close-editor" aria-label="Chiudi">×</button></div>
     <div id="details"></div>
-    <div class="dialog-footer"><p id="form-message" role="alert"></p><button type="button" class="plain" id="cancel">Chiudi</button><button type="button" class="primary" id="edit-event" hidden>Modifica</button><button class="primary" id="save">Salva scheda</button></div>
+    <div class="dialog-footer"><p id="form-message" role="alert"></p><button type="button" class="plain" id="cancel">Chiudi</button><button type="button" class="primary" id="edit-event" hidden>Modifica</button><button class="primary success" id="save">Salva</button></div>
   </form>
 </dialog>
 <dialog id="catalog-dialog" aria-labelledby="catalog-title">

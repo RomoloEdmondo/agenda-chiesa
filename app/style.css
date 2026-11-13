@@ -81,3 +81,34 @@
 #event-place-preview{flex:1;min-width:0;overflow-wrap:anywhere;font-size:.87rem}
 #event-place-preview a{color:var(--green)}
 @media(max-width:420px){.event-schedule{gap:6px}.event-schedule input{padding-inline:4px;font-size:.76rem}}
+
+.dialog-head .square,.task .square,#toast-close{color:#a12e38;border-color:#f0cbd0}
+.dialog-head .square:hover,.task .square:hover,#toast-close:hover{background:#fff0f1}
+.primary.success{background:#227344;border-color:#227344}
+.primary.success:hover{background:#185c35}
+#editor .dialog-head,#editor .dialog-footer{padding:9px 15px}
+#editor .eyebrow{margin-bottom:3px}
+#editor #details{padding:11px 15px}
+#editor .fields{gap:8px}
+#editor .fields input:not([type=checkbox]),#editor .fields select,#editor .fields textarea,#editor .task input[type=text]{padding:6px 8px}
+#editor .tasks{margin-top:11px}
+#editor .task{margin:5px 0}
+.event-schedule summary{padding:0;font-size:inherit;font-weight:inherit;color:var(--green)}
+.event-schedule details{font-size:.78rem;font-weight:720;line-height:normal}
+.event-schedule .event-end-input{margin-top:5px}
+.event-place-row{padding:2px 6px;gap:4px}
+#event-place-preview{font-size:.8rem}
+#edit-place{width:28px;height:28px}
+.account-actions button{display:inline-flex;align-items:center;gap:6px}
+.action-icon{width:16px;height:16px;flex:none}
+.danger-outline{padding:7px 10px;border:1px solid #d49ba2;border-radius:8px;color:#a12e38;background:transparent;font-weight:680}
+.danger-outline:hover{background:#fff0f1}
+#protected-app:not([hidden]){display:flex;min-height:100vh;flex-direction:column}
+#protected-app>.wrap{width:100%;flex:1}
+.church-footer{background:var(--paper);border-top:1px solid var(--line)}
+.church-footer-inner{max-width:1340px;margin:auto;padding:14px clamp(12px,3vw,38px);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.footer-brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.84rem}
+.church-footer nav{gap:4px 15px;flex-wrap:wrap}
+.church-footer a{font-size:.82rem;color:var(--green);text-decoration:none}
+.church-footer a:hover{text-decoration:underline}
+@media print{.church-footer{display:none}}
