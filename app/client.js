@@ -305,8 +305,9 @@ function openEditor(event, editing=view!=='team', date='') {
   isNewEvent = !event;
   active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date,end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
   renderEditor(editing);
+  $('event-title').autofocus = !event && editing && canSave;
+  $('close-editor').autofocus = !$('event-title').autofocus;
   $('editor').showModal();
-  if (!event && editing && canSave) $('event-title').focus();
 }
 
 function renderEditor(editing) {
@@ -364,10 +365,14 @@ function renderEditor(editing) {
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
     }
     const field = key => renderField(fields.find(([name])=>name===key));
-    $('details').innerHTML = '<div class="fields"><div class="event-schedule wide">'+
-      ['type','date','end','time'].map(field).join('')+'</div><div class="event-location wide">'+
-      ['place','status'].map(field).join('')+'</div>'+
-      ['responsible','speaker','description','materials'].map(field).join('')+'</div><section class="tasks"><h3>Checklist</h3><div id="task-list"></div><button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
+    $('details').innerHTML = '<section class="editor-section"><h3>Programma</h3>'+
+      '<div class="fields"><div class="event-schedule wide">'+['date','time','end'].map(field).join('')+
+      '</div><div class="event-location wide">'+['place','type','status'].map(field).join('')+
+      '</div></div></section><section class="editor-section"><h3>Persone e dettagli</h3><div class="fields">'+
+      ['responsible','speaker','description','materials'].map(field).join('')+
+      '</div></section><section class="editor-section tasks"><div class="checklist-heading"><h3>Checklist</h3>'+
+      '<span id="checklist-count"></span></div><div id="task-list"></div>'+
+      '<button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
     const placeInput = $('event-place-input');
     $('edit-place').onclick = () => {
       $('event-place-preview').hidden = true;
@@ -410,18 +415,32 @@ function renderEditor(editing) {
       });
     });
     for (const task of active.tasks) addTask(task);
+    updateChecklistCount();
+    $('task-list').onchange = updateChecklistCount;
     $('add-task').onclick = () => {
       if ($('task-list').children.length<80) addTask({label:'',done:false}).focus();
     };
   }
 }
 
+function updateChecklistCount() {
+  const list = $('task-list');
+  const done = list.querySelectorAll('input:checked').length;
+  const total = list.children.length;
+  $('checklist-count').textContent = total ? done+' / '+total+' completate' : '';
+}
+
 function addTask(task) {
   const item = document.createElement('div');
   item.className = 'task';
-  item.innerHTML = '<input type="checkbox" aria-label="Attività completata" '+(task.done?'checked':'')+'><input type="text" maxlength="240" aria-label="Descrizione attività" value="'+escape(task.label)+'"><button type="button" class="square" aria-label="Rimuovi attività">×</button>';
-  item.querySelector('button').onclick = () => item.remove();
+  item.innerHTML = '<input type="checkbox" aria-label="Attività completata" '+(task.done?'checked':'')+'><input type="text" maxlength="240" aria-label="Descrizione attività" value="'+escape(task.label)+'"><button type="button" class="icon-button delete-icon" aria-label="Rimuovi attività" title="Rimuovi attività"></button>';
+  item.querySelector('button').onclick = () => {
+    item.remove();
+    updateChecklistCount();
+    $('add-task').focus();
+  };
   $('task-list').append(item);
+  updateChecklistCount();
   return item.querySelector('input[type=text]');
 }
 

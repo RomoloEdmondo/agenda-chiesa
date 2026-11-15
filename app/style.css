@@ -181,3 +181,44 @@
 #delete-event .delete-icon::before{width:15px;height:15px}
 #editor #form-message:empty{display:none}
 #editor #cancel{margin-left:auto}
+
+/* Event editor */
+#editor{width:min(740px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:hidden}
+#event-form{display:flex;flex-direction:column;max-height:calc(100dvh - 26px)}
+#editor .dialog-head,#editor .dialog-footer{flex:none;padding:14px 20px}
+#editor .dialog-head{background:#f2f7fb}
+#editor #event-title{border-bottom:1px solid transparent;color:var(--ink);line-height:1.25}
+#editor #event-title:hover{border-bottom-color:#9ab5c6}
+#editor #event-title:focus{outline:0;border-bottom-color:#216c98}
+#editor #details{overflow:auto;min-height:0;padding:0 20px;scrollbar-gutter:stable}
+#editor #details>.readonly{margin-top:16px}
+.editor-section{padding:14px 0;border-bottom:1px solid var(--line)}
+.editor-section:last-child{border-bottom:0}
+.editor-section>h3,.checklist-heading{margin-bottom:10px}
+#editor .fields{gap:10px 12px}
+#editor .fields label,#editor .event-schedule details{font-size:.8rem}
+#editor .event-schedule{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#editor .event-location{grid-template-columns:minmax(0,1.65fr) minmax(0,1fr) minmax(0,1fr);gap:12px}
+#editor .event-schedule summary{min-height:20px;padding:2px 0}
+#editor .event-place-row{margin-top:5px}
+#editor .event-place-row,#editor .choice-control,#editor .fields select,#editor .fields input:not([type=checkbox]){min-height:36px}
+#editor .choice-control input:not([type=checkbox]){min-height:0}
+#editor .event-materials{padding:4px 10px;border:1px solid var(--line);border-radius:8px;background:#f7fafc}
+#editor .event-materials textarea{margin-bottom:5px}
+#editor .tasks{margin:0}
+.checklist-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#checklist-count{font-size:.78rem;color:var(--muted);white-space:nowrap}
+#editor .task{grid-template-columns:20px minmax(0,1fr) 34px;padding:3px 5px;border:1px solid var(--line);border-radius:8px;background:#f8fafc}
+#editor .task input[type=text]{border-color:transparent;background:transparent;font-weight:500}
+#editor .task:has(input:checked) input[type=text]{color:var(--muted);text-decoration:line-through}
+#editor .task .delete-icon{width:34px;height:34px}
+#editor #add-task{margin-top:4px}
+#editor .dialog-footer{background:var(--paper)}
+@media(max-width:560px){
+  #editor .dialog-head,#editor .dialog-footer{padding:10px 12px}
+  #editor #details{padding-inline:12px}
+  #editor .event-schedule,#editor .event-location{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  #editor .event-place{grid-column:1/-1}
+  #editor .dialog-footer{gap:5px}
+  #editor .dialog-footer button{padding-inline:7px;font-size:.8rem}
+}
