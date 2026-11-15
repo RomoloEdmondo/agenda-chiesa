@@ -27,7 +27,7 @@ const dateLabel = event => event.date
 const sorted = list => [...list].sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999') ||
   a.time.localeCompare(b.time) || a.title.localeCompare(b.title,'it'));
 const empty = message => '<p class="empty">'+escape(message)+'</p>';
-const eventButton = (event, label, className='plain') => '<button type="button" class="'+className+'" data-event="'+escape(event.id)+'">'+escape(label)+'</button>';
+const eventButton = (event, label, className='plain') => '<button type="button" class="'+className+'" data-color="'+typeColor(event.type)+'" data-event="'+escape(event.id)+'">'+escape(label)+'</button>';
 
 function matches(event) {
   const type = $('type-filter').value;
@@ -51,7 +51,7 @@ function row(event, team=false) {
   const notes = [team ? dateLabel(event) : "",event.time,team ? event.place : "",event.speaker].filter(Boolean).join(' · ');
   const extra = team ? '<small>'+escape([event.responsible,event.status].filter(Boolean).join(' · '))+'</small>' : '';
   return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
-    '<span class="row-copy"><span class="row-type">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
+    '<span class="row-copy"><span class="row-type" data-color="'+typeColor(event.type)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
 }
 
 function renderCalendar(list) {
@@ -323,8 +323,10 @@ function renderEditor(editing) {
   $('form-message').textContent = '';
   $('save').hidden = readOnly;
   $('delete-event').hidden = readOnly || isNewEvent;
+  const typeSlot = $('editor-type');
   if (readOnly) {
-    $('details').innerHTML = '<dl class="readonly">'+fields.filter(([key])=>key!=='title').map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
+    typeSlot.innerHTML = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+escape(active.type)+'</span>';
+    $('details').innerHTML = '<dl class="readonly">'+fields.filter(([key])=>!['title','type'].includes(key)).map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
       escape(key==='place' ? place : (['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
       '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul>';
   } else {
@@ -365,56 +367,17 @@ function renderEditor(editing) {
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
     }
     const field = key => renderField(fields.find(([name])=>name===key));
-    const editorTabs = [
-      ['program','Programma','<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/>'],
-      ['people','Persone e note','<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>'],
-      ['tasks','Checklist','<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>']
-    ];
-    $('details').innerHTML = '<div class="editor-workspace"><div class="editor-nav" role="tablist" aria-label="Sezioni della scheda">'+
-      editorTabs.map(([key,label,path],index)=>'<button type="button" role="tab" id="editor-tab-'+key+
-      '" aria-controls="editor-panel-'+key+'" aria-selected="'+(index===0)+'" tabindex="'+(index===0?0:-1)+'">'+
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">'+path+'</svg>'+
-      '<span>'+label+'</span>'+(key==='tasks'?'<span class="checklist-badge" id="checklist-count"></span>':'')+'</button>').join('')+
-      '</div><div class="editor-body">'+
-      '<section class="editor-section" role="tabpanel" id="editor-panel-program" aria-labelledby="editor-tab-program" tabindex="0">'+
-      '<div class="fields">'+['type','status'].map(field).join('')+
+    typeSlot.innerHTML = field('type');
+    $('details').innerHTML = '<div class="editor-overview">'+
+      '<section class="editor-card"><h3>Programma</h3><div class="fields">'+
       '<div class="event-schedule wide">'+['date','time','end'].map(field).join('')+'</div>'+
-      '<div class="wide">'+field('place')+'</div></div></section>'+
-      '<section class="editor-section" role="tabpanel" id="editor-panel-people" aria-labelledby="editor-tab-people" tabindex="0" hidden>'+
-      '<div class="fields">'+['responsible','speaker','description','materials'].map(field).join('')+'</div></section>'+
-      '<section class="editor-section tasks" role="tabpanel" id="editor-panel-tasks" aria-labelledby="editor-tab-tasks" tabindex="0" hidden>'+
-      '<div class="checklist-heading"><h3>Attività</h3><span id="checklist-summary"></span></div><div id="task-list"></div>'+
-      '<button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section></div></div>';
-    const tabs = [...$('details').querySelectorAll('[role="tab"]')];
-    function selectTab(selected) {
-      for (const tab of tabs) {
-        const active = tab===selected;
-        tab.setAttribute('aria-selected',String(active));
-        tab.tabIndex = active ? 0 : -1;
-        $(tab.getAttribute('aria-controls')).hidden = !active;
-      }
-      $('details').scrollTop = 0;
-    }
-    tabs.forEach((tab,index)=>{
-      tab.onclick = () => selectTab(tab);
-      tab.onkeydown = event => {
-        const next = {ArrowRight:(index+1)%tabs.length,ArrowDown:(index+1)%tabs.length,
-          ArrowLeft:(index+tabs.length-1)%tabs.length,ArrowUp:(index+tabs.length-1)%tabs.length,
-          Home:0,End:tabs.length-1}[event.key];
-        if (next===undefined) return;
-        event.preventDefault();
-        selectTab(tabs[next]);
-        tabs[next].focus();
-      };
-    });
-    $('event-form').addEventListener('invalid',revealInvalidField,true);
-    function revealInvalidField(event) {
-      const panel = event.target.closest('[role="tabpanel"]');
-      if (panel?.hidden) selectTab($(panel.getAttribute('aria-labelledby')));
-    }
-    $('editor').addEventListener('close',()=>{
-      $('event-form').removeEventListener('invalid',revealInvalidField,true);
-    },{once:true});
+      '<div class="wide">'+field('place')+'</div><div class="wide">'+field('status')+'</div>'+
+      '</div></section><section class="editor-card"><h3>Persone</h3><div class="editor-people">'+
+      ['responsible','speaker'].map(field).join('')+'</div></section></div>'+
+      '<div class="editor-notes">'+['description','materials'].map(field).join('')+'</div>'+
+      '<section class="editor-card tasks"><div class="checklist-heading"><h3>Checklist</h3>'+
+      '<span id="checklist-summary"></span></div><div id="task-list"></div>'+
+      '<button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
     const placeInput = $('event-place-input');
     $('edit-place').onclick = () => {
       $('event-place-preview').hidden = true;
@@ -425,10 +388,15 @@ function renderEditor(editing) {
     const {date,end} = $('event-form').elements;
     date.onchange = () => { end.min = date.value || '0001-01-01'; };
     end.oninvalid = () => { end.closest('details').open = true; };
-    $('details').querySelectorAll('.event-choice').forEach(choice=>{
+    $('event-form').querySelectorAll('.event-choice').forEach(choice=>{
       const input = choice.querySelector('input');
       const toggle = choice.querySelector('.choice-toggle');
       const list = choice.querySelector('.choice-options');
+      if (input.name==='type') {
+        const paint = () => { choice.dataset.color = typeColor(input.value); };
+        input.addEventListener('input',paint);
+        paint();
+      }
       function setOpen(open) {
         list.hidden = !open;
         toggle.setAttribute('aria-expanded',String(open));
@@ -442,6 +410,7 @@ function renderEditor(editing) {
         const item = event.target.closest('button[data-value]');
         if (!item) return;
         input.value = item.dataset.value;
+        input.dispatchEvent(new Event('input',{bubbles:true}));
         setOpen(false);
         input.focus();
       };
@@ -469,7 +438,6 @@ function updateChecklistCount() {
   const list = $('task-list');
   const done = list.querySelectorAll('input:checked').length;
   const total = list.children.length;
-  $('checklist-count').textContent = total ? done+'/'+total : '';
   $('checklist-summary').textContent = total ? done+' di '+total+' completate' : 'Nessuna attività';
 }
 

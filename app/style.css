@@ -223,32 +223,40 @@
   #editor .dialog-footer button{padding-inline:7px;font-size:.8rem}
 }
 
-/* Focused event workspace */
-#editor{width:min(800px,calc(100% - 24px));border-radius:20px;box-shadow:0 24px 90px #0a23334f}
-#editor .dialog-head{padding:19px 23px;background:linear-gradient(115deg,#edf6fb,#f9fbfd)}
-#editor .dialog-footer{padding:12px 23px;border-top:1px solid var(--line)}
-#editor #details:has(.editor-workspace){padding:0;scrollbar-gutter:auto}
-.editor-workspace{display:grid;grid-template-columns:184px minmax(0,1fr);min-height:315px}
-.editor-nav{display:flex;flex-direction:column;gap:5px;padding:15px 10px;background:#f3f7fa;border-right:1px solid var(--line)}
-.editor-nav button{display:flex;align-items:center;gap:8px;width:100%;padding:10px 8px;text-align:left;border:1px solid transparent;border-radius:9px;background:transparent;color:#41596a;font-size:.84rem;font-weight:680}
-.editor-nav button:hover{background:#eaf1f6}
-.editor-nav button[aria-selected=true]{background:#fff;border-color:#bfd5e3;color:#154d70;box-shadow:0 1px 3px #13374e12}
-.editor-nav svg{width:17px;height:17px;flex:none}
-.checklist-badge:not(:empty){margin-left:auto;padding:2px 5px;border-radius:6px;background:#e2edf4;color:#295572;font-size:.68rem;white-space:nowrap}
-.editor-body{min-width:0;padding:18px 21px 20px}
-#editor .editor-body .editor-section{padding:0;border:0}
-#editor .editor-body .fields{gap:15px 12px}
-#editor .editor-body .event-schedule{padding:12px;border:1px solid var(--line);border-radius:10px;background:#f6f9fc}
-#editor .editor-body .event-end-input input{min-width:0}
-#editor .editor-body .event-place-row{padding:5px 8px 5px 10px}
-#editor .editor-body .checklist-heading{padding:0 0 8px}
+
+/* Single-page event sheet */
+#editor{width:min(860px,calc(100% - 24px));border-radius:18px}
+#editor .dialog-head{padding:16px 20px;background:linear-gradient(115deg,#edf5fa,#fafcfd);align-items:center}
+#editor .dialog-head #event-title{transition:border-color .2s ease}
+#editor #event-title:focus{border-bottom-color:#216c98}
+#editor-type{flex:0 1 158px;min-width:0}
+#editor-type .choice-control{background:var(--tag-bg,#fff);border-color:transparent;box-shadow:inset 0 0 0 1px #1c4b682c}
+#editor-type .choice-control input{color:var(--tag-ink,var(--ink));font-weight:650;padding:7px 8px}
+#editor-type .choice-toggle{width:30px}
+#editor-type .choice-options{z-index:12}
+#editor .dialog-head{position:relative;z-index:2}
+#editor #details{padding:14px 20px;scrollbar-gutter:auto;background:#f3f7fa}
+.editor-overview{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px}
+.editor-card,.editor-notes{padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);box-shadow:0 2px 5px #16394f09}
+.editor-card h3{font-size:.94rem}
+.editor-overview h3{margin-bottom:11px;border-left:3px solid #4582a8;padding-left:8px}
+.editor-people{display:grid;gap:10px}
+#editor .event-schedule{grid-template-columns:repeat(3,minmax(0,1fr))}
+#editor .event-schedule summary{padding:2px 0}
+.editor-notes{display:grid;gap:9px;margin:12px 0}
+#editor .event-materials{border:0;border-radius:0;padding:7px 0 0;background:transparent;border-top:1px solid var(--line)}
+#editor .event-materials summary{padding:0}
 #checklist-summary{font-size:.78rem;color:var(--muted)}
+.row-type[data-color]{display:inline-flex;justify-self:start;padding:2px 6px;border-radius:5px;background:var(--tag-bg);color:var(--tag-ink)}
+#month-events button[data-color],.prep-card button[data-color]{border-left:3px solid var(--tag-ink);background:var(--tag-bg);color:var(--tag-ink);padding-inline:6px}
 @media(max-width:620px){
-  #editor .dialog-head,#editor .dialog-footer{padding:12px}
-  .editor-workspace{grid-template-columns:minmax(0,1fr);min-height:0}
-  .editor-nav{flex-direction:row;border-right:0;border-bottom:1px solid var(--line);padding:7px 8px;gap:4px}
-  .editor-nav button{justify-content:center;padding:8px 4px;gap:4px;font-size:.74rem}
-  .editor-nav svg{width:13px;height:13px}
-  .checklist-badge:not(:empty){margin-left:0}
-  .editor-body{padding:14px 12px 18px}
+  #editor .dialog-head,#editor .dialog-footer{padding:10px 12px}
+  #editor #details{padding:10px 12px}
+  .editor-overview{grid-template-columns:minmax(0,1fr);gap:9px}
+  .editor-people{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #editor-type{flex-basis:105px}
+  #editor-type .choice-control input{font-size:.75rem;padding-inline:3px}
+  #editor-type .choice-toggle{width:22px}
 }
+@media(max-width:390px){#editor .event-schedule{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){#editor .dialog-head #event-title{transition:none}}
