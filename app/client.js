@@ -365,14 +365,56 @@ function renderEditor(editing) {
       return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
     }
     const field = key => renderField(fields.find(([name])=>name===key));
-    $('details').innerHTML = '<section class="editor-section"><h3>Programma</h3>'+
-      '<div class="fields"><div class="event-schedule wide">'+['date','time','end'].map(field).join('')+
-      '</div><div class="event-location wide">'+['place','type','status'].map(field).join('')+
-      '</div></div></section><section class="editor-section"><h3>Persone e dettagli</h3><div class="fields">'+
-      ['responsible','speaker','description','materials'].map(field).join('')+
-      '</div></section><section class="editor-section tasks"><div class="checklist-heading"><h3>Checklist</h3>'+
-      '<span id="checklist-count"></span></div><div id="task-list"></div>'+
-      '<button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
+    const editorTabs = [
+      ['program','Programma','<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/>'],
+      ['people','Persone e note','<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>'],
+      ['tasks','Checklist','<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>']
+    ];
+    $('details').innerHTML = '<div class="editor-workspace"><div class="editor-nav" role="tablist" aria-label="Sezioni della scheda">'+
+      editorTabs.map(([key,label,path],index)=>'<button type="button" role="tab" id="editor-tab-'+key+
+      '" aria-controls="editor-panel-'+key+'" aria-selected="'+(index===0)+'" tabindex="'+(index===0?0:-1)+'">'+
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">'+path+'</svg>'+
+      '<span>'+label+'</span>'+(key==='tasks'?'<span class="checklist-badge" id="checklist-count"></span>':'')+'</button>').join('')+
+      '</div><div class="editor-body">'+
+      '<section class="editor-section" role="tabpanel" id="editor-panel-program" aria-labelledby="editor-tab-program" tabindex="0">'+
+      '<div class="fields">'+['type','status'].map(field).join('')+
+      '<div class="event-schedule wide">'+['date','time','end'].map(field).join('')+'</div>'+
+      '<div class="wide">'+field('place')+'</div></div></section>'+
+      '<section class="editor-section" role="tabpanel" id="editor-panel-people" aria-labelledby="editor-tab-people" tabindex="0" hidden>'+
+      '<div class="fields">'+['responsible','speaker','description','materials'].map(field).join('')+'</div></section>'+
+      '<section class="editor-section tasks" role="tabpanel" id="editor-panel-tasks" aria-labelledby="editor-tab-tasks" tabindex="0" hidden>'+
+      '<div class="checklist-heading"><h3>Attività</h3><span id="checklist-summary"></span></div><div id="task-list"></div>'+
+      '<button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section></div></div>';
+    const tabs = [...$('details').querySelectorAll('[role="tab"]')];
+    function selectTab(selected) {
+      for (const tab of tabs) {
+        const active = tab===selected;
+        tab.setAttribute('aria-selected',String(active));
+        tab.tabIndex = active ? 0 : -1;
+        $(tab.getAttribute('aria-controls')).hidden = !active;
+      }
+      $('details').scrollTop = 0;
+    }
+    tabs.forEach((tab,index)=>{
+      tab.onclick = () => selectTab(tab);
+      tab.onkeydown = event => {
+        const next = {ArrowRight:(index+1)%tabs.length,ArrowDown:(index+1)%tabs.length,
+          ArrowLeft:(index+tabs.length-1)%tabs.length,ArrowUp:(index+tabs.length-1)%tabs.length,
+          Home:0,End:tabs.length-1}[event.key];
+        if (next===undefined) return;
+        event.preventDefault();
+        selectTab(tabs[next]);
+        tabs[next].focus();
+      };
+    });
+    $('event-form').addEventListener('invalid',revealInvalidField,true);
+    function revealInvalidField(event) {
+      const panel = event.target.closest('[role="tabpanel"]');
+      if (panel?.hidden) selectTab($(panel.getAttribute('aria-labelledby')));
+    }
+    $('editor').addEventListener('close',()=>{
+      $('event-form').removeEventListener('invalid',revealInvalidField,true);
+    },{once:true});
     const placeInput = $('event-place-input');
     $('edit-place').onclick = () => {
       $('event-place-preview').hidden = true;
@@ -427,7 +469,8 @@ function updateChecklistCount() {
   const list = $('task-list');
   const done = list.querySelectorAll('input:checked').length;
   const total = list.children.length;
-  $('checklist-count').textContent = total ? done+' / '+total+' completate' : '';
+  $('checklist-count').textContent = total ? done+'/'+total : '';
+  $('checklist-summary').textContent = total ? done+' di '+total+' completate' : 'Nessuna attività';
 }
 
 function addTask(task) {

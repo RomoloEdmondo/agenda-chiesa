@@ -222,3 +222,33 @@
   #editor .dialog-footer{gap:5px}
   #editor .dialog-footer button{padding-inline:7px;font-size:.8rem}
 }
+
+/* Focused event workspace */
+#editor{width:min(800px,calc(100% - 24px));border-radius:20px;box-shadow:0 24px 90px #0a23334f}
+#editor .dialog-head{padding:19px 23px;background:linear-gradient(115deg,#edf6fb,#f9fbfd)}
+#editor .dialog-footer{padding:12px 23px;border-top:1px solid var(--line)}
+#editor #details:has(.editor-workspace){padding:0;scrollbar-gutter:auto}
+.editor-workspace{display:grid;grid-template-columns:184px minmax(0,1fr);min-height:315px}
+.editor-nav{display:flex;flex-direction:column;gap:5px;padding:15px 10px;background:#f3f7fa;border-right:1px solid var(--line)}
+.editor-nav button{display:flex;align-items:center;gap:8px;width:100%;padding:10px 8px;text-align:left;border:1px solid transparent;border-radius:9px;background:transparent;color:#41596a;font-size:.84rem;font-weight:680}
+.editor-nav button:hover{background:#eaf1f6}
+.editor-nav button[aria-selected=true]{background:#fff;border-color:#bfd5e3;color:#154d70;box-shadow:0 1px 3px #13374e12}
+.editor-nav svg{width:17px;height:17px;flex:none}
+.checklist-badge:not(:empty){margin-left:auto;padding:2px 5px;border-radius:6px;background:#e2edf4;color:#295572;font-size:.68rem;white-space:nowrap}
+.editor-body{min-width:0;padding:18px 21px 20px}
+#editor .editor-body .editor-section{padding:0;border:0}
+#editor .editor-body .fields{gap:15px 12px}
+#editor .editor-body .event-schedule{padding:12px;border:1px solid var(--line);border-radius:10px;background:#f6f9fc}
+#editor .editor-body .event-end-input input{min-width:0}
+#editor .editor-body .event-place-row{padding:5px 8px 5px 10px}
+#editor .editor-body .checklist-heading{padding:0 0 8px}
+#checklist-summary{font-size:.78rem;color:var(--muted)}
+@media(max-width:620px){
+  #editor .dialog-head,#editor .dialog-footer{padding:12px}
+  .editor-workspace{grid-template-columns:minmax(0,1fr);min-height:0}
+  .editor-nav{flex-direction:row;border-right:0;border-bottom:1px solid var(--line);padding:7px 8px;gap:4px}
+  .editor-nav button{justify-content:center;padding:8px 4px;gap:4px;font-size:.74rem}
+  .editor-nav svg{width:13px;height:13px}
+  .checklist-badge:not(:empty){margin-left:0}
+  .editor-body{padding:14px 12px 18px}
+}
