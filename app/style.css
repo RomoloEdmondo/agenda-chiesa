@@ -175,3 +175,9 @@
 #editor .dialog-footer{flex-wrap:wrap}
 #editor #form-message:not(:empty){flex-basis:100%}
 #editor #form-message:empty{flex:1}
+
+#delete-event{display:inline-flex;align-items:center;gap:6px;margin-right:auto}
+#delete-event .delete-icon{display:inline-flex;color:inherit}
+#delete-event .delete-icon::before{width:15px;height:15px}
+#editor #form-message:empty{display:none}
+#editor #cancel{margin-left:auto}
