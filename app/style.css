@@ -150,3 +150,20 @@
 .prep-card[data-status="Da preparare"]{background:#e3ae2026;border-color:#cda44b}
 .prep-card[data-status="Annullato"]{position:relative;padding-right:35px}
 .prep-cancelled{position:absolute;top:9px;right:11px;color:#a91f39;font-size:1.3rem;font-weight:750;line-height:1}
+
+.month-heading,.top-inner nav button[data-view],.church-footer nav a,.catalog-actions{display:flex;align-items:center;gap:6px}
+.month-heading{flex-wrap:wrap;gap:5px 9px}
+.catalog-actions select{width:auto}
+[data-color=blue]{--tag-bg:#e1edf5;--tag-ink:#1c4b68}
+[data-color=green]{--tag-bg:#e1eee0;--tag-ink:#244b39}
+[data-color=yellow]{--tag-bg:#f3e6ce;--tag-ink:#63431e}
+[data-color=pink]{--tag-bg:#f3e2eb;--tag-ink:#65364c}
+[data-color=orange]{--tag-bg:#ffe3cb;--tag-ink:#793b12}
+[data-color=gray]{--tag-bg:#e8edf0;--tag-ink:#354650}
+[data-color=purple]{--tag-bg:#eae3f6;--tag-ink:#49376e}
+[data-color=teal]{--tag-bg:#d9f0ec;--tag-ink:#145750}
+[data-color=red]{--tag-bg:#fae0e2;--tag-ink:#77252e}
+[data-color=brown]{--tag-bg:#ecded5;--tag-ink:#5f3b2b}
+.chip[data-color],.color-swatch{background:var(--tag-bg);color:var(--tag-ink)}
+.color-swatch{width:14px;height:14px;border-radius:50%;border:1px solid currentColor;flex:none}
+@media(max-width:450px){.top-inner nav button[data-view]{gap:4px;padding-inline:5px}.top-inner nav .action-icon{width:13px;height:13px}}

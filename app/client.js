@@ -72,7 +72,7 @@ function renderCalendar(list) {
     if (day<1 || day>count) return '<div class="day outside" aria-hidden="true"></div>';
     const date = month+'-'+String(day).padStart(2,'0');
     const chips = monthEvents.filter(e=>e.date<=date && (e.end||e.date)>=date).map(e=>
-      '<button type="button" class="chip" data-type="'+escape(e.type)+'" data-event="'+escape(e.id)+'" title="'+escape(e.title)+'" aria-label="'+
+      '<button type="button" class="chip" data-color="'+typeColor(e.type)+'" data-event="'+escape(e.id)+'" title="'+escape(e.title)+'" aria-label="'+
       escape(e.title+' · '+format(date,{day:'numeric',month:'long'}))+'">'+escape(e.title)+'</button>').join('');
     const add = canSave ? '<button type="button" class="day-add" data-new-date="'+date+
       '" aria-label="'+escape('Nuovo evento, '+format(date,{day:'numeric',month:'long',year:'numeric'}))+'"></button>' : '';
@@ -142,6 +142,19 @@ let catalogKind;
 const catalogName = entry => [entry.firstName,entry.lastName].filter(Boolean).join(' ');
 const nameKey = value => value.trim().normalize('NFC').replace(/\s+/g,' ').toLocaleLowerCase('it');
 
+const palette = {blue:'Blu',green:'Verde',yellow:'Giallo',pink:'Rosa',orange:'Arancione',
+  gray:'Grigio',purple:'Viola',teal:'Turchese',red:'Rosso',brown:'Marrone'};
+const defaultColors = {agape:'yellow',bambini:'pink',concerto:'pink',convegno:'purple',
+  culto:'green',donne:'blue',seminario:'purple',uomini:'blue',cinema:'green'};
+
+function typeColor(name) {
+  const key = nameKey(name);
+  const color = catalog.find(entry=>entry.kind==='type' && nameKey(catalogName(entry))===key)?.color;
+  return Object.hasOwn(palette,color) ? color : (Object.hasOwn(defaultColors,key) ? defaultColors[key] : 'gray');
+}
+
+const colorOptions = selected => Object.entries(palette).map(([id,label])=>option(id,label,id===selected)).join('');
+
 function catalogNames(kind) {
   const entries = catalog.filter(entry=>entry.kind===kind);
   const names = kind==='type' ? [...types,...events.map(event=>event.type)] : events.flatMap(speakers);
@@ -165,8 +178,11 @@ function fillTypes(selected=$('type-filter').value) {
 function renderCatalog() {
   const names = catalogNames(catalogKind);
   $('catalog-list').innerHTML = names.length ? names.map(name=>'<li class="account-row"><span>'+escape(name)+
-    '</span><button type="button" class="icon-button delete-icon" data-remove="'+escape(name)+
-    '" aria-label="Rimuovi '+escape(name)+'" title="Rimuovi '+escape(name)+'"></button></li>').join('')
+    '</span><div class="catalog-actions">'+(catalogKind==='type'?
+      '<span class="color-swatch" data-color="'+typeColor(name)+'" aria-hidden="true"></span>'+
+      '<select data-color-type="'+escape(name)+'" aria-label="Colore di '+escape(name)+'">'+colorOptions(typeColor(name))+'</select>':'')+
+    '<button type="button" class="icon-button delete-icon" data-remove="'+escape(name)+
+    '" aria-label="Rimuovi '+escape(name)+'" title="Rimuovi '+escape(name)+'"></button></div></li>').join('')
     : '<li class="muted">Nessuna voce presente.</li>';
 }
 
@@ -181,8 +197,25 @@ function updateCatalog(entry) {
 function catalogBusy(busy) {
   $('catalog-save').disabled = busy;
   $('catalog-dialog').querySelector('[method="dialog"] button').disabled = busy;
-  $('catalog-list').querySelectorAll('button').forEach(button=>button.disabled=busy);
+  $('catalog-list').querySelectorAll('button,select').forEach(control=>control.disabled=busy);
 }
+
+$('catalog-list').onchange = async event => {
+  const select = event.target.closest('select[data-color-type]');
+  if (!select || $('catalog-save').disabled) return;
+  const name = select.dataset.colorType;
+  catalogBusy(true);
+  try {
+    updateCatalog(await jsonApi('/api/catalog',{kind:'type',action:'color',firstName:name,color:select.value}));
+    $('catalog-message').textContent = 'Colore salvato.';
+  } catch (error) {
+    select.value = typeColor(name);
+    $('catalog-message').textContent = error.message;
+  } finally {
+    catalogBusy(false);
+    [...$('catalog-list').querySelectorAll('select')].find(item=>item.dataset.colorType===name)?.focus();
+  }
+};
 
 $('catalog-list').onclick = async event => {
   const button = event.target.closest('button[data-remove]');
@@ -208,6 +241,9 @@ function openCatalog(kind) {
   $('catalog-title').textContent = isSpeaker ? 'Relatori' : 'Tipi di evento';
   $('catalog-first-label').textContent = isSpeaker ? 'Nome' : 'Nome del tipo di evento';
   $('catalog-last-label').hidden = !isSpeaker;
+  $('catalog-color-label').hidden = isSpeaker;
+  $('catalog-form').elements.color.disabled = isSpeaker;
+  $('catalog-form').elements.color.innerHTML = colorOptions('gray');
   $('catalog-form').elements.lastName.required = isSpeaker;
   $('catalog-form').reset();
   $('catalog-form').hidden = true;

@@ -42,7 +42,7 @@
       <img class="brand-logo" src="./simbolo-ruchheim.webp" width="48" height="37" alt=""><span>Chiesa Evangelica<small>RUCHHEIM</small></span>
     </a>
     <nav aria-label="Viste dell’agenda">
-      <button data-view="agenda">Calendario</button><button data-view="prep">Preparazione</button><button data-view="team">Vista team</button>
+      <button data-view="agenda"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg>Calendario</button><button data-view="prep"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V3h6v2m-7 9 2 2 5-5"/></svg>Preparazione</button><button data-view="team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-16a3 3 0 0 1 0 6m1 4a5 5 0 0 1 4 5v1"/></svg>Vista team</button>
 
       <details id="catalog-menu" hidden>
         <summary class="square" aria-label="Menu di gestione">☰</summary>
@@ -73,7 +73,7 @@
       <div class="panel-head"><div><p class="eyebrow">PROGRAMMA</p><h2>Calendario</h2></div>
         <div class="calendar-period"><label>Mese<select id="calendar-month"></select></label><form id="year-form"><label>Anno<input id="calendar-year" type="number" min="1" max="9999" step="1" required></label><button class="plain">Vai</button></form></div>
       </div>
-      <div class="monthbar"><h3 id="month-title"></h3><div class="month-controls"><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button><button id="today" class="plain">Oggi</button><button class="square" id="prev" aria-label="Mese precedente">‹</button><button class="square" id="next" aria-label="Mese successivo">›</button></div></div>
+      <div class="monthbar"><div class="month-heading"><h3 id="month-title"></h3><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div><div class="month-controls"><button id="today" class="plain">Oggi</button><button class="square" id="prev" aria-label="Mese precedente">‹</button><button class="square" id="next" aria-label="Mese successivo">›</button></div></div>
       <div class="weekdays" aria-hidden="true"><span>Lun</span><span>Mar</span><span>Mer</span><span>Gio</span><span>Ven</span><span>Sab</span><span>Dom</span></div>
       <div id="days" class="days" aria-labelledby="month-title"></div>
       <div id="month-events"></div>
@@ -91,10 +91,10 @@
   <div class="church-footer-inner">
     <span class="footer-brand"><img src="./simbolo-ruchheim.webp" width="32" height="25" alt="">Chiesa Evangelica Ruchheim</span>
     <nav aria-label="Link della chiesa">
-      <a href="https://it.cg-ruchheim.de/">Sito chiesa</a>
-      <a href="mailto:info@cg-ruchheim.de">Email</a>
-      <a href="https://www.instagram.com/ce_ruchheim/reels/">Instagram</a>
-      <a href="https://www.youtube.com/@dioticerca72/videos">YouTube</a>
+      <a href="https://it.cg-ruchheim.de/"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>Sito chiesa</a>
+      <a href="mailto:info@cg-ruchheim.de"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Email</a>
+      <a href="https://www.instagram.com/ce_ruchheim/reels/"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17 7h.01"/></svg>Instagram</a>
+      <a href="https://www.youtube.com/@dioticerca72/videos"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none"/></svg>YouTube</a>
     </nav>
   </div>
 </footer>
@@ -115,6 +115,7 @@
     <form id="catalog-form" hidden>
       <label><span id="catalog-first-label"></span><input name="firstName" required maxlength="100"></label>
       <label id="catalog-last-label">Cognome<input name="lastName" maxlength="100"></label>
+      <label id="catalog-color-label" hidden>Colore<select name="color"></select></label>
       <button class="primary success" id="catalog-save">Salva</button>
     </form>
     <p id="catalog-message" role="status"></p>
