@@ -371,8 +371,8 @@ function renderEditor(editing) {
     $('details').innerHTML = '<div class="editor-overview">'+
       '<section class="editor-card"><h3>Programma</h3><div class="fields">'+
       '<div class="event-schedule wide">'+['date','time','end'].map(field).join('')+'</div>'+
-      '<div class="wide">'+field('place')+'</div><div class="wide">'+field('status')+'</div>'+
-      '</div></section><section class="editor-card"><h3>Persone</h3><div class="editor-people">'+
+      '<div class="event-location wide">'+field('place')+field('status')+'</div>'+
+      '</div></section><section class="editor-card editor-people-card"><h3>Persone</h3><div class="editor-people">'+
       ['responsible','speaker'].map(field).join('')+'</div></section></div>'+
       '<div class="editor-notes">'+['description','materials'].map(field).join('')+'</div>'+
       '<section class="editor-card tasks"><div class="checklist-heading"><h3>Checklist</h3>'+
