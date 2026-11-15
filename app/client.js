@@ -17,6 +17,7 @@ let showAll = false;
 let view = 'agenda';
 let active;
 let canSave = false;
+let isNewEvent = false;
 
 const option = (value,label=value,selected=false) => '<option value="'+escape(value)+'"'+(selected?' selected':'')+'>'+escape(label)+'</option>';
 const dateLabel = event => event.date
@@ -47,11 +48,10 @@ function matches(event) {
 function row(event, team=false) {
   const day = event.date ? Number(event.date.slice(8)) : '–';
   const label = event.date ? format(event.date,{month:'short'}) : 'Data';
-  const notes = [event.time,team ? event.place : "",event.speaker].filter(Boolean).join(' · ');
+  const notes = [team ? dateLabel(event) : "",event.time,team ? event.place : "",event.speaker].filter(Boolean).join(' · ');
   const extra = team ? '<small>'+escape([event.responsible,event.status].filter(Boolean).join(' · '))+'</small>' : '';
   return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
-    '<span class="row-copy"><span class="row-type">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong><small>'+
-    escape(dateLabel(event)+(notes?' · '+notes:''))+'</small>'+extra+'</span><span aria-hidden="true">›</span></button>';
+    '<span class="row-copy"><span class="row-type">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
 }
 
 function renderCalendar(list) {
@@ -302,6 +302,7 @@ const churchPlace = 'Christliche Gemeinde Ruchheim · '+churchAddress;
 const churchMap = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(churchAddress);
 
 function openEditor(event, editing=view!=='team', date='') {
+  isNewEvent = !event;
   active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date,end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
   renderEditor(editing);
   $('editor').showModal();
@@ -320,6 +321,7 @@ function renderEditor(editing) {
   title.value = active.title;
   $('form-message').textContent = '';
   $('save').hidden = readOnly;
+  $('delete-event').hidden = readOnly || isNewEvent;
   if (readOnly) {
     $('details').innerHTML = '<dl class="readonly">'+fields.filter(([key])=>key!=='title').map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
       escape(key==='place' ? place : (['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
@@ -422,6 +424,31 @@ function addTask(task) {
   $('task-list').append(item);
   return item.querySelector('input[type=text]');
 }
+
+$('delete-event').onclick = async () => {
+  if (!canSave || isNewEvent || $('delete-event').hidden || $('save').disabled) return;
+  if (!window.confirm('Eliminare «'+active.title+'» dal calendario?')) return;
+  $('save').disabled = $('delete-event').disabled = true;
+  $('form-message').textContent = 'Eliminazione in corso…';
+  try {
+    const {id,revision} = active;
+    const response = await apiFetch('/api/events',{
+      method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,revision})
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error);
+    events = events.filter(event=>event.id!==id);
+    $('editor').close();
+    fillTypes();
+    fillPeriods();
+    render();
+    notice('Evento eliminato.');
+  } catch (error) {
+    $('form-message').textContent = error.message || 'Eliminazione non riuscita.';
+  } finally {
+    $('save').disabled = $('delete-event').disabled = false;
+  }
+};
 
 async function save(event) {
   event.preventDefault();

@@ -167,3 +167,11 @@
 .chip[data-color],.color-swatch{background:var(--tag-bg);color:var(--tag-ink)}
 .color-swatch{width:14px;height:14px;border-radius:50%;border:1px solid currentColor;flex:none}
 @media(max-width:450px){.top-inner nav button[data-view]{gap:4px;padding-inline:5px}.top-inner nav .action-icon{width:13px;height:13px}}
+
+@media(min-width:901px){.agenda{grid-template-columns:minmax(0,2.3fr) minmax(270px,1fr)}}
+.day-add:hover,.day-add:focus-visible{background:#e6eaee}
+.day-add::after{content:'+';position:absolute;left:50%;top:50%;translate:-50% -50%;font-size:1.28rem;font-weight:650;color:#43586b;opacity:0}
+.day-add:hover::after,.day-add:focus-visible::after{opacity:1}
+#editor .dialog-footer{flex-wrap:wrap}
+#editor #form-message:not(:empty){flex-basis:100%}
+#editor #form-message:empty{flex:1}
