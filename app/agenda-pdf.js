@@ -10,7 +10,23 @@ function pdfString(text) {
   }).join('');
 }
 
+const logo = new Image();
+logo.src = new URL('./logo-ruchheim.webp',import.meta.url).href;
+
+export function pdfLogoReady() {
+  return logo.complete && logo.naturalWidth ? null : logo.decode();
+}
+
 export function agendaPdf(title,events) {
+  const logoCanvas = document.createElement('canvas');
+  logoCanvas.width = 300;
+  logoCanvas.height = Math.round(300*logo.naturalHeight/logo.naturalWidth);
+  const logoContext = logoCanvas.getContext('2d');
+  logoContext.fillStyle = '#fff';
+  logoContext.fillRect(0,0,logoCanvas.width,logoCanvas.height);
+  logoContext.drawImage(logo,0,0,logoCanvas.width,logoCanvas.height);
+  const logoData = Array.from(atob(logoCanvas.toDataURL('image/jpeg',.92).split(',')[1]),
+    char=>char.charCodeAt(0).toString(16).padStart(2,'0')).join('')+'>';
   const pages = [];
   const measure = document.createElement('canvas').getContext('2d');
   const text = (x,y,value,size=11,bold=false,color='0.13 0.21 0.28') =>
@@ -36,43 +52,48 @@ export function agendaPdf(title,events) {
   let stream,y;
   function page() {
     if (stream) pages.push(stream);
-    stream = '0.07 0.27 0.39 rg 0 742 595 100 re f\n'+
-      text(44,805,'AGENDA RUCHHEIM',11,true,'0.84 0.92 0.97')+
-      text(44,768,title,24,true,'1 1 1')+
-      text(44,32,'Christliche Gemeinde Ruchheim',9)+text(523,32,String(pages.length+1),9);
-    y=707;
+    const logoHeight = Math.round(90*logoCanvas.height/logoCanvas.width);
+    stream = '0.94 0.97 0.99 rg 0 747 595 95 re f\n'+
+      '1 1 1 rg 457 758 102 72 re f\n'+
+      'q 90 0 0 '+logoHeight+' 463 '+(794-Math.round(logoHeight/2))+' cm /Logo Do Q\n'+
+      text(36,805,'AGENDA RUCHHEIM',10,true,'0.12 0.37 0.50')+
+      text(36,769,title,23,true)+
+      text(36,28,'Christliche Gemeinde Ruchheim',9)+text(541,28,String(pages.length+1),9);
+    y=720;
   }
-  function line(value,size=11,bold=false,offset=0) {
-    for (const part of lines(value,495-offset,size,bold)) {
-      if (y<62) page();
-      stream += text(44+offset,y,part,size,bold);
-      y-=size+5;
+  function write(value,x,width,size,bold,color) {
+    for (const part of lines(value,width,size,bold)) {
+      if (y<58) page();
+      stream += text(x,y,part,size,bold,color);
+      y-=size+4;
     }
   }
   page();
-  if (!events.length) line('Nessun appuntamento con i filtri selezionati.');
+  if (!events.length) write('Nessun appuntamento con i filtri selezionati.',36,523,11);
   for (const event of events) {
     if (y<145) page();
-    stream += '0.20 0.48 0.60 RG 1.5 w 44 '+(y+10)+' m 551 '+(y+10)+' l S\n';
-    line(event.title,17,true);
+    write(event.title,36,523,16,true,'0.08 0.28 0.40');
+    y-=3;
     for (const [label,value] of event.fields) {
       if (!value?.trim()) continue;
-      if (y<84) page();
-      line(label,9,true);
-      line(value,11,false,9);
-      y-=4;
+      if (y<76) page();
+      stream += text(36,y,label,9,true,'0.28 0.40 0.49');
+      write(value,134,425,10.5);
     }
-    y-=18;
+    y-=17;
   }
   pages.push(stream);
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Count '+pages.length+' /Kids ['+pages.map((_,i)=>(5+i*2)+' 0 R').join(' ')+'] >>',
+    '<< /Type /Pages /Count '+pages.length+' /Kids ['+pages.map((_,i)=>(6+i*2)+' 0 R').join(' ')+'] >>',
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'
   ];
+  objects.push('<< /Type /XObject /Subtype /Image /Width '+logoCanvas.width+' /Height '+logoCanvas.height+
+    ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter [/ASCIIHexDecode /DCTDecode] /Length '+logoData.length+
+    ' >>\nstream\n'+logoData+'\nendstream');
   for (const [i,content] of pages.entries()) {
-    objects.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents '+(6+i*2)+' 0 R >>');
+    objects.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << /Logo 5 0 R >> >> /Contents '+(7+i*2)+' 0 R >>');
     objects.push('<< /Length '+content.length+' >>\nstream\n'+content+'endstream');
   }
   let output='%PDF-1.4\n';

@@ -1,4 +1,4 @@
-import {agendaPdf} from './agenda-pdf.js';
+import {agendaPdf,pdfLogoReady} from './agenda-pdf.js';
 import {notice} from './toast.js';
 import {apiFetch, isAdmin, jsonApi, mayEdit} from './session.js';
 import {types, statuses} from './event-types.js';
@@ -115,16 +115,29 @@ function pdfEvent(event) {
   ]};
 }
 
-async function sharePdf(title,fileName,events) {
-  const file = new File([agendaPdf(title,events.map(pdfEvent))],fileName,{type:'application/pdf'});
-  if (navigator.canShare?.({files:[file]}) && typeof navigator.share==='function') {
+function makeAgendaFile(title,fileName,events) {
+  return new File([agendaPdf(title,events.map(pdfEvent))],fileName,{type:'application/pdf'});
+}
+
+async function sharePdf(title,fileName,events,preview=false) {
+  let file;
+  try {
+    const ready = pdfLogoReady();
+    if (ready) await ready;
+    file = makeAgendaFile(title,fileName,events);
+  } catch {
+    notice('Impossibile preparare il PDF. Riprova tra poco.');
+    return;
+  }
+  if (!preview && navigator.canShare?.({files:[file]}) && typeof navigator.share==='function') {
     try { await navigator.share({files:[file],title}); return; }
     catch (error) { if (error.name==='AbortError') return; }
   }
   const url = URL.createObjectURL(file);
   const link = document.createElement('a');
   link.href=url;
-  link.download=file.name;
+  if (preview) { link.target='_blank'; link.rel='noopener'; }
+  else link.download=file.name;
   link.click();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
@@ -143,7 +156,7 @@ function renderTeam(list) {
   };
   $('share-team').onclick = () => sharePdf('Programma per il team','programma-ruchheim.pdf',list);
   $('copy-link').onclick = () => copyAgendaLink(teamLink());
-  $('print').onclick = () => window.print();
+  $('print').onclick = () => sharePdf('Programma per il team','programma-ruchheim.pdf',list,true);
 }
 
 function render() {
