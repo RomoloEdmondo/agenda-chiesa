@@ -336,7 +336,7 @@ function renderEditor(editing) {
         return '<label>Data inizio<input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
       }
       if (key==='end') {
-        return '<details'+(active.end?' open':'')+'><summary>Data fine</summary><label class="event-end-input">'+
+        return '<details class="event-end"'+(active.end?' open':'')+'><summary>Data fine</summary><label class="event-end-input">'+
           '<input type="date" name="end" aria-label="Data fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+value+'"></label></details>';
       }
       if (key==='place') {
@@ -375,8 +375,8 @@ function renderEditor(editing) {
     typeSlot.innerHTML = field('type');
     $('details').innerHTML = '<div class="editor-overview">'+
       '<section class="editor-card editor-program-card"><h3>Programma</h3><div class="fields">'+
-      '<div class="event-schedule wide">'+['date','time','end'].map(field).join('')+'</div>'+
-      '<div class="event-location wide">'+field('place')+field('status')+'</div>'+
+      '<div class="event-schedule wide">'+['date','time','status'].map(field).join('')+'</div>'+
+      '<div class="event-options wide">'+field('end')+field('place')+'</div>'+
       '</div></section><section class="editor-card editor-people-card"><h3>Persone</h3><div class="editor-people">'+
       ['responsible','speaker'].map(field).join('')+'</div></section></div>'+
       '<div class="editor-notes">'+['description','materials'].map(field).join('')+'</div>'+
