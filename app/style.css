@@ -349,8 +349,21 @@
 
 @media screen and (max-width: 760px), screen and (max-width: 1100px) and (hover: none) and (pointer: coarse){
   #protected-app{
-    --agenda-nav-height:68px;
-    padding-bottom:calc(var(--agenda-nav-height) + env(safe-area-inset-bottom, 0px));
+    --agenda-nav-safe-bottom:min(14px, env(safe-area-inset-bottom, 0px));
+    --agenda-nav-height:calc(55px + var(--agenda-nav-safe-bottom));
+    padding-bottom:var(--agenda-nav-height);
+  }
+
+  /* Keep the current view heading available to assistive technology. */
+  #protected-app > .wrap > .hero{
+    position:absolute;
+    width:1px;
+    height:1px;
+    min-height:0;
+    padding:0;
+    margin:-1px;
+    overflow:hidden;
+    clip-path:inset(50%);
   }
 
   .agenda-nav{
@@ -360,14 +373,14 @@
     bottom:0;
     z-index:8;
     width:auto;
-    min-height:calc(var(--agenda-nav-height) + env(safe-area-inset-bottom, 0px));
+    min-height:var(--agenda-nav-height);
     box-sizing:border-box;
     display:flex;
     justify-content:center;
     align-items:stretch;
     flex-wrap:nowrap;
     gap:4px;
-    padding:5px max(8px, env(safe-area-inset-right, 0px)) calc(5px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+    padding:5px max(8px, env(safe-area-inset-right, 0px)) calc(5px + var(--agenda-nav-safe-bottom)) max(8px, env(safe-area-inset-left, 0px));
     background:var(--paper);
     border-top:1px solid var(--line);
     box-shadow:0 -5px 22px rgba(21, 77, 112, .09);
@@ -387,9 +400,9 @@
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    gap:4px;
-    min-height:52px;
-    padding:4px 1px;
+    gap:2px;
+    min-height:44px;
+    padding:3px 1px;
     background:transparent;
     color:#435970;
     border:0;
