@@ -51,6 +51,7 @@
           <button type="button" class="plain" data-catalog="speaker">Relatori</button>
           <button type="button" class="plain" data-catalog="type">Tipi di evento</button>
           <button type="button" class="plain" id="open-mail-history">Storico email e promemoria</button>
+          <button type="button" class="plain" id="open-activity">Registro attività</button>
         </div>
       </details>
     </nav>
@@ -120,6 +121,14 @@
     </form>
     <p id="mail-message" role="status"></p>
     <p class="muted" id="mail-latest"></p>
+  </div>
+</dialog>
+<dialog id="activity-dialog" aria-labelledby="activity-title">
+  <div class="dialog-head"><h2 id="activity-title">Registro attività</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content">
+    <p id="activity-message" role="status"></p>
+    <ol id="activity-list"></ol>
+    <button type="button" class="plain" id="activity-more" hidden>Mostra attività precedenti</button>
   </div>
 </dialog>
 <dialog id="mail-history-dialog" aria-labelledby="mail-history-title">

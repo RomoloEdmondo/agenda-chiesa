@@ -596,6 +596,65 @@ async function loadAdminMailHistory() {
   }));
 }
 
+const activityLabels = {
+  'event.create':'Evento creato',
+  'event.edit':'Evento modificato',
+  'event.delete':'Evento eliminato',
+  'speaker.add':'Relatore aggiunto',
+  'speaker.remove':'Relatore eliminato',
+  'type.add':'Tipo di evento aggiunto',
+  'type.remove':'Tipo di evento eliminato',
+  'type.color':'Colore del tipo di evento modificato',
+  'user.invite':'Invito creato',
+  'user.reset':'Reimpostazione password richiesta',
+  'user.disable':'Account disattivato',
+  'user.role':'Permessi modificati',
+  'mail.request':'Invio email richiesto',
+  'mail.schedule':'Email programmata',
+  'mail.cancel':'Invio email annullato',
+  'mail.sent':'Email inviata',
+  'mail.failed':'Invio email fallito',
+  'mail.unknown':'Esito invio email non confermato'
+};
+const activityTime = new Intl.DateTimeFormat('it-IT',{
+  dateStyle:'medium',timeStyle:'short',timeZone:'Europe/Berlin'
+});
+let activityCursor = null;
+
+async function loadActivity() {
+  const more = $('activity-more');
+  const message = $('activity-message');
+  more.disabled = true;
+  message.textContent = 'Caricamento…';
+  try {
+    const {entries,next} = await jsonApi('/api/activity'+(activityCursor === null ? '' : '?before='+activityCursor));
+    $('activity-list').insertAdjacentHTML('beforeend',entries.map(({action,target,actor,time})=>{
+      const date = new Date(time*1000);
+      return '<li><strong>'+escape(activityLabels[action] || action)+'</strong>'+
+        '<span>'+escape(target)+'</span><small>'+escape(actor)+' · <time datetime="'+
+        date.toISOString()+'">'+activityTime.format(date)+'</time></small></li>';
+    }).join(''));
+    activityCursor = next;
+    message.textContent = $('activity-list').childElementCount ? '' : 'Nessuna attività registrata.';
+    more.hidden = next === null;
+  } catch (error) {
+    message.textContent = error.message;
+  } finally {
+    more.disabled = false;
+  }
+}
+
+$('activity-more').onclick = loadActivity;
+$('open-activity').onclick = async () => {
+  if (!isAdmin()) return;
+  $('catalog-menu').open = false;
+  activityCursor = null;
+  $('activity-list').replaceChildren();
+  $('activity-more').hidden = true;
+  $('activity-dialog').showModal();
+  await loadActivity();
+};
+
 $('open-mail-history').onclick = async () => {
   if (!isAdmin()) return;
   $('catalog-menu').open = false;
