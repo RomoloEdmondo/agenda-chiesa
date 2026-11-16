@@ -340,11 +340,16 @@ function renderEditor(editing) {
           '<input type="date" name="end" aria-label="Data fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+value+'"></label></details>';
       }
       if (key==='place') {
-        return '<div class="event-place"><label for="event-place-input">Luogo</label><div class="event-place-row">'+
-          '<div id="event-place-preview">'+(place===churchPlace ? '<strong>Christliche Gemeinde Ruchheim</strong> <span aria-hidden="true">·</span> <a href="'+churchMap+
+        const isDefault = place===churchPlace || place.trim().toLowerCase()==='christliche gemeinde ruchheim';
+        return '<details class="event-place"'+(isDefault?'':' open')+'><summary>Luogo</summary><div class="event-place-row">'+
+          '<div id="event-place-preview">'+(isDefault ? '<strong>Christliche Gemeinde Ruchheim</strong> <span aria-hidden="true">·</span> <a href="'+churchMap+
           '" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>' : escape(place))+'</div>'+
-          '<input type="text" name="place" id="event-place-input" value="'+escape(place)+'" maxlength="5000" hidden>'+
-          '<button type="button" id="edit-place" class="icon-button" aria-label="Modifica luogo" title="Modifica luogo">✎</button></div></div>';
+          '<input type="text" name="place" id="event-place-input" aria-label="Luogo" value="'+escape(place)+'" maxlength="5000" hidden>'+
+          '<button type="button" id="edit-place" class="icon-button" aria-label="Modifica luogo" title="Modifica luogo">✎</button></div></details>';
+      }
+      if (key==='description') {
+        return '<details class="event-description"'+(active.description?.trim()?' open':'')+'><summary>Descrizione</summary>'+
+          '<textarea name="description" aria-label="Descrizione" rows="3" maxlength="5000">'+value+'</textarea></details>';
       }
       if (key==='materials') {
         return '<details class="event-materials wide"><summary>Materiali e link'+(active.materials?' · presenti':'')+
@@ -369,7 +374,7 @@ function renderEditor(editing) {
     const field = key => renderField(fields.find(([name])=>name===key));
     typeSlot.innerHTML = field('type');
     $('details').innerHTML = '<div class="editor-overview">'+
-      '<section class="editor-card"><h3>Programma</h3><div class="fields">'+
+      '<section class="editor-card editor-program-card"><h3>Programma</h3><div class="fields">'+
       '<div class="event-schedule wide">'+['date','time','end'].map(field).join('')+'</div>'+
       '<div class="event-location wide">'+field('place')+field('status')+'</div>'+
       '</div></section><section class="editor-card editor-people-card"><h3>Persone</h3><div class="editor-people">'+
@@ -414,9 +419,6 @@ function renderEditor(editing) {
         setOpen(false);
         input.focus();
       };
-      choice.addEventListener('focusout',event=>{
-        if (!choice.contains(event.relatedTarget)) setOpen(false);
-      });
       choice.addEventListener('keydown',event=>{
         if (event.key==='Escape' && !list.hidden) {
           event.preventDefault();
@@ -425,6 +427,13 @@ function renderEditor(editing) {
         }
       });
     });
+    $('event-form').onpointerdown = event => {
+      $('event-form').querySelectorAll('.choice-toggle[aria-expanded="true"]').forEach(toggle=>{
+        if (toggle.closest('.event-choice').contains(event.target)) return;
+        toggle.setAttribute('aria-expanded','false');
+        $(toggle.getAttribute('aria-controls')).hidden = true;
+      });
+    };
     for (const task of active.tasks) addTask(task);
     updateChecklistCount();
     $('task-list').onchange = updateChecklistCount;

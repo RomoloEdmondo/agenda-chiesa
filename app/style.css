@@ -273,3 +273,22 @@
 #editor .checklist-heading{color:#28563e}
 #editor .editor-card.tasks .task{background:#fff}
 @media(max-width:410px){#editor .event-location{grid-template-columns:minmax(0,1fr)}}
+
+
+.editor-program-card{background:#f3f8f2;border-color:#d9e8d6}
+.editor-program-card h3{border-left-color:#588665}
+#editor .event-place summary,#editor .event-description summary{cursor:pointer;color:var(--green);font-size:.8rem;font-weight:700}
+#editor .event-location .event-place-row{min-height:0;padding:2px 5px;background:#fff}
+#editor .event-location #event-place-preview{font-size:.75rem;line-height:1.3}
+#editor .event-description textarea{margin-top:6px}
+#editor .task{padding-block:1px;margin-block:3px}
+#editor .task input[type=text]{padding-block:4px}
+#editor .task .delete-icon{height:30px}
+.prep-card button[data-color]{border-left:0}
+@media(max-width:700px){
+  .top-inner nav{position:relative}
+  #catalog-menu{position:static}
+  .catalog-menu-items{right:0;left:auto;min-width:0;width:min(180px,100%);box-sizing:border-box}
+  .church-footer-inner{flex-direction:column;text-align:center;justify-content:center}
+  .church-footer nav{justify-content:center}
+}
