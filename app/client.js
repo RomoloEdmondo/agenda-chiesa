@@ -3,6 +3,21 @@ import {notice} from './toast.js';
 import {apiFetch, isAdmin, jsonApi, mayEdit} from './session.js';
 import {types, statuses} from './event-types.js';
 const $ = id => document.getElementById(id);
+
+const agendaNav = document.querySelector('.agenda-nav');
+const headerActions = document.querySelector('.top-inner .account-actions');
+const mobileNavigation = window.matchMedia('(max-width: 760px), (max-width: 1100px) and (hover: none) and (pointer: coarse)');
+
+function placeAgendaNavigation() {
+  if (mobileNavigation.matches) {
+    $('protected-app').append(agendaNav);
+  } else {
+    headerActions.before(agendaNav);
+  }
+}
+
+placeAgendaNavigation();
+mobileNavigation.addEventListener('change', placeAgendaNavigation);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({
   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
 }[c]));
