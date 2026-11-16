@@ -497,9 +497,9 @@ const mailStates = {pending:'Programmato',sending:'In invio',sent:'Inviato',fail
 let mailRequest;
 
 async function loadMailHistory() {
-  const {configured,jobs} = await jsonApi('/api/mail');
+  const {configured,jobs,issue} = await jsonApi('/api/mail');
   $('mail-submit').disabled = !configured;
-  if (!configured) $('mail-message').textContent = 'Configurazione email incompleta su Cloudflare.';
+  if (!configured) $('mail-message').textContent = issue || 'Configurazione email incompleta su Cloudflare.';
   $('mail-history').replaceChildren(...jobs.map(job=>{
     const row = document.createElement('li');
     row.textContent = [job.subject,job.recipient,new Date(job.due*1000).toLocaleString('it-IT'),mailStates[job.status]].join(' · ');
