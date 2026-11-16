@@ -99,21 +99,33 @@ function renderPrep(list) {
       (tasks.length?'<ul>'+tasks.map(task=>'<li>'+escape(task.label)+'</li>').join('')+'</ul>':'')+'</article>').join('')+'</div>' : empty('Nessun appuntamento con questi filtri.'));
 }
 
+async function copyAgendaLink(url) {
+  try { await navigator.clipboard.writeText(url); notice('Link copiato. Si apre per chi ha accesso all’agenda.'); }
+  catch { window.prompt('Copia il link dell’agenda',url); }
+}
+
+async function shareAgendaLink(title,url) {
+  if (typeof navigator.share==='function') {
+    try { await navigator.share({title,url}); return; }
+    catch (error) { if (error.name==='AbortError') return; }
+  }
+  await copyAgendaLink(url);
+}
+
 function renderTeam(list) {
   $('team').innerHTML = '<div class="panel-head"><div><h2>Programma per il team</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
-    '<div class="team-actions"><button class="primary" id="copy-link">Copia link</button><button class="plain" id="print">Stampa / PDF</button></div></div>'+
+    '<div class="team-actions"><button class="primary action-with-icon" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi</button><button class="plain" id="copy-link">Copia link</button><button class="plain" id="print">Stampa / PDF</button></div></div>'+
     (list.map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'));
-  $('copy-link').onclick = async () => {
-    const link = new URL(location.href);
+  const teamLink = () => {
+    const link = new URL(location.pathname,location.origin);
     for (const id of ['type-filter','period-filter','from','to']) {
-      if ($(id).value) link.searchParams.set(id,$(id).value);
-      else link.searchParams.delete(id);
+      if (id==='period-filter' || $(id).value) link.searchParams.set(id,$(id).value);
     }
-    link.searchParams.delete('speaker-filter');
     link.hash = 'team';
-    try { await navigator.clipboard.writeText(link.href); notice('Link copiato. Si apre per chi ha accesso all’agenda.'); }
-    catch { window.prompt('Copia il link della vista team',link.href); }
+    return link.href;
   };
+  $('share-team').onclick = () => shareAgendaLink('Programma per il team · Agenda Ruchheim',teamLink());
+  $('copy-link').onclick = () => copyAgendaLink(teamLink());
   $('print').onclick = () => window.print();
 }
 
@@ -324,6 +336,7 @@ function renderEditor(editing) {
   $('save').hidden = readOnly;
   $('delete-event').hidden = readOnly || isNewEvent;
   $('event-mail').hidden = !canSave || isNewEvent;
+  $('share-event').hidden = isNewEvent;
   const typeSlot = $('editor-type');
   if (readOnly) {
     typeSlot.innerHTML = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+escape(active.type)+'</span>';
@@ -481,7 +494,7 @@ $('delete-event').onclick = async () => {
     events = events.filter(event=>event.id!==id);
     $('editor').close();
     fillTypes();
-    fillPeriods();
+
     render();
     notice('Evento eliminato.');
   } catch (error) {
@@ -526,6 +539,13 @@ mailForm.elements.mode.onchange = () => {
   $('mail-submit').textContent = scheduled ? 'Programma promemoria' : 'Invia email';
 };
 
+$('share-event').onclick = () => {
+  if (isNewEvent) return;
+  const link = new URL(location.pathname,location.origin);
+  link.searchParams.set('event',active.id);
+  link.hash = 'team';
+  shareAgendaLink(active.title,link.href);
+};
 $('event-mail').onclick = async () => {
   if (!canSave || isNewEvent || $('save').disabled) return;
   mailForm.reset();
@@ -588,11 +608,11 @@ async function save(event) {
     const saved = await response.json();
     if (!response.ok) throw new Error(saved.error);
     events = [...events.filter(item=>item.id!==saved.id),saved];
-    const selectedPeriod = $('period-filter').value;
+
     if (saved.date && view==='agenda') month = saved.date.slice(0,7);
     $('editor').close();
     fillTypes();
-    fillPeriods(isYear(selectedPeriod) && view==='agenda' ? month.slice(0,4) : selectedPeriod);
+
     render();
     notice('Scheda salvata.');
   } catch (error) {
@@ -602,6 +622,12 @@ async function save(event) {
 
 function selectView() {
   view = ['agenda','prep','team'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'agenda';
+  const params = new URLSearchParams(location.search);
+  const period = $('period-filter');
+  const requested = params.get('period-filter');
+  period.value = [...period.options].some(option=>option.value===requested)
+    ? requested : (view==='team'?'future':'');
+  for (const id of ['type-filter','from','to']) $(id).value = params.get(id) || '';
   render();
 }
 
@@ -613,30 +639,9 @@ function moveMonth(by) {
 }
 
 function navigateMonth(next) {
-  const year = next.slice(0,4);
-  if (isYear($('period-filter').value) && $('period-filter').value !== year) fillPeriods(year);
+
   month = next;
   render();
-}
-
-function fillPeriods(selected=$('period-filter').value) {
-  const filter = $('period-filter');
-  for (const item of [...filter.options]) if (isYear(item.value)) item.remove();
-  const years = new Set([today.slice(0,4)]);
-  for (const event of events) {
-    if (event.date) years.add(event.date.slice(0,4));
-    if (event.end) years.add(event.end.slice(0,4));
-  }
-  if (isYear(selected)) years.add(selected);
-  for (const year of [...years].sort()) {
-    filter.add(new Option('Anno '+Number(year),year),filter.options.length-1);
-  }
-  filter.value = selected;
-}
-
-function jumpYear(year) {
-  const candidate = sorted(events.filter(e=>e.date.startsWith(year)&&matches(e)))[0];
-  month = year===nowMonth.slice(0,4) ? nowMonth : candidate?.date.slice(0,7) || year+'-01';
 }
 
 $('calendar-month').innerHTML = Array.from({length:12},(_,index)=>{
@@ -650,16 +655,7 @@ $('year-form').onsubmit = event => {
   if (isYear(year)) navigateMonth(year+'-'+$('calendar-month').value);
 };
 fillTypes();
-const params = new URLSearchParams(location.search);
-fillPeriods(params.get('period-filter') || '');
-for (const id of ['type-filter','period-filter','from','to']) {
-  if (params.has(id)) $(id).value = params.get(id);
-  $(id).onchange = () => {
-    if (id==='period-filter' && isYear($(id).value)) jumpYear($(id).value);
-    render();
-  };
-}
-if (isYear($('period-filter').value)) jumpYear($('period-filter').value);
+for (const id of ['type-filter','period-filter','from','to']) $(id).onchange = render;
 $('reset').onclick = () => {
   for (const id of ['type-filter','period-filter','from','to']) $(id).value='';
   render();
@@ -702,13 +698,13 @@ async function load() {
     const response = await apiFetch('/api/events');
     if (!response.ok) throw new Error('Calendario non disponibile');
     events = await response.json();
-    fillTypes(params.get('type-filter') || $('type-filter').value);
-    fillPeriods();
+    fillTypes(new URLSearchParams(location.search).get('type-filter') || $('type-filter').value);
+
     render();
     try {
       catalog = await jsonApi('/api/catalog');
       $('catalog-menu').hidden = !isAdmin();
-      fillTypes(params.get('type-filter') || $('type-filter').value);
+      fillTypes(new URLSearchParams(location.search).get('type-filter') || $('type-filter').value);
       render();
     } catch (error) {
       if (error.status!==404) notice('Impossibile caricare gli elenchi di relatori e tipi di evento.');
@@ -716,6 +712,12 @@ async function load() {
     canSave = mayEdit();
     $('new-event').disabled = !canSave;
     if (view==='agenda') render();
+    const eventId = new URLSearchParams(location.search).get('event');
+    if (view==='team' && eventId) {
+      const shared = events.find(event=>event.id===eventId);
+      if (shared) openEditor(shared,false);
+      else notice('Evento non disponibile.');
+    }
   } catch {
     notice('Impossibile caricare il calendario. Riprova tra poco.');
   }

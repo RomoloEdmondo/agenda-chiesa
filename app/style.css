@@ -337,3 +337,7 @@
 #mail-message:not(:empty){margin:10px 0}
 #mail-history{padding-left:20px;font-size:.82rem;overflow-wrap:anywhere}
 #mail-history li{margin:6px 0}
+
+.action-with-icon{display:inline-flex;align-items:center;gap:6px}
+#event-mail{background:#e7f3fa;color:#164e70;border:1px solid #bad8e9}
+#event-mail:hover{background:#d5ebf7}
