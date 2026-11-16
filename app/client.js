@@ -291,10 +291,10 @@ $('catalog-form').onsubmit = async event => {
 };
 
 const fields = [
-  ['title','Titolo','text'],['type','Tipo evento','suggestions'],['date','Data inizio','date'],
+  ['title','Titolo','text'],['type','Tipo evento','suggestions'],['date','Data','date'],
   ['end','Data fine','date'],['time','Orario','time'],['place','Luogo','text'],
   ['responsible','Guida/Conduzione','text'],['speaker','Relatore','suggestions'],
-  ['status','Stato di preparazione','select'],['description','Descrizione','textarea'],['materials','Materiali e link','textarea']
+  ['status','Stato preparazione','select'],['description','Descrizione','textarea'],['materials','Materiali e link','textarea']
 ];
 
 const churchAddress = 'Oggersheimer Str. 2, 67071 Ludwigshafen';
@@ -326,14 +326,15 @@ function renderEditor(editing) {
   const typeSlot = $('editor-type');
   if (readOnly) {
     typeSlot.innerHTML = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+escape(active.type)+'</span>';
-    $('details').innerHTML = '<dl class="readonly">'+fields.filter(([key])=>!['title','type'].includes(key)).map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
+    $('details').innerHTML = '<dl class="readonly">'+fields.filter(([key])=>!['title','type'].includes(key) &&
+      (view!=='team' || !['end','materials','description'].includes(key) || active[key]?.trim())).map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
       escape(key==='place' ? place : (['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
       '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul>';
   } else {
     function renderField([key,label,kind]) {
       const value = escape(active[key]);
       if (key==='date') {
-        return '<label>Data inizio<input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
+        return '<label>Data<input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
       }
       if (key==='end') {
         return '<details class="event-end"'+(active.end?' open':'')+'><summary>Data fine</summary><label class="event-end-input">'+

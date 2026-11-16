@@ -267,7 +267,7 @@
 #editor .event-location .event-place{grid-column:auto;min-width:0}
 #editor .event-location .event-place-row{min-height:36px}
 .editor-people-card{background:#eef6fa;border-color:#d0e2ed}
-.editor-notes{background:#fbfaf7;border-color:#e7e0d6;box-shadow:none}
+.editor-notes{background:#f5f6f7;border-color:#dce2e7;box-shadow:none}
 #editor .editor-notes textarea{background:#fff}
 #editor .editor-card.tasks{border-left:3px solid #4b8867;background:#f8fbf9}
 #editor .checklist-heading{color:#28563e}
@@ -315,3 +315,13 @@
   .top-inner nav,#catalog-menu{position:static}
   #catalog-menu .catalog-menu-items{position:absolute;top:100%;left:auto;right:12px;width:min(180px,calc(100vw - 24px));min-width:0}
 }
+
+.editor-overview{align-items:stretch}
+#editor .editor-overview .editor-card{padding:10px 12px}
+#editor .editor-overview h3{margin-bottom:7px}
+#editor .editor-overview .fields{row-gap:7px}
+#editor .editor-overview .editor-people{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#editor .editor-overview .fields input:not([type=checkbox]),#editor .editor-overview .fields select{min-height:32px}
+#editor .editor-overview .choice-control{min-height:32px}
+#editor .editor-overview .choice-toggle{height:32px;width:30px}
+#editor .event-options summary{padding-block:3px}
