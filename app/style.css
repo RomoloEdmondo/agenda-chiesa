@@ -341,3 +341,6 @@
 .action-with-icon{display:inline-flex;align-items:center;gap:6px}
 #event-mail{background:#e7f3fa;color:#164e70;border:1px solid #bad8e9}
 #event-mail:hover{background:#d5ebf7}
+
+#mail-latest:not(:empty){padding:10px;border:1px solid var(--line);border-radius:8px;font-size:.82rem}
+#mail-history-message:not(:empty){margin-top:10px}

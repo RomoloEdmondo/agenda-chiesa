@@ -1,3 +1,4 @@
+import {agendaPdf} from './agenda-pdf.js';
 import {notice} from './toast.js';
 import {apiFetch, isAdmin, jsonApi, mayEdit} from './session.js';
 import {types, statuses} from './event-types.js';
@@ -104,12 +105,28 @@ async function copyAgendaLink(url) {
   catch { window.prompt('Copia il link dell’agenda',url); }
 }
 
-async function shareAgendaLink(title,url) {
-  if (typeof navigator.share==='function') {
-    try { await navigator.share({title,url}); return; }
+function pdfEvent(event) {
+  return {title:event.title,fields:[
+    ['Tipo evento',event.type],['Data',dateLabel(event)],['Orario',event.time],
+    ['Luogo',event.place || churchPlace],['Stato preparazione',event.status],
+    ['Guida/Conduzione',event.responsible],['Relatore',event.speaker],
+    ['Descrizione',event.description],['Materiali e link',event.materials],
+    ['Checklist',event.tasks.map(task=>(task.done?'[Completata] ':'[Da fare] ')+task.label).join('\n')]
+  ]};
+}
+
+async function sharePdf(title,fileName,events) {
+  const file = new File([agendaPdf(title,events.map(pdfEvent))],fileName,{type:'application/pdf'});
+  if (navigator.canShare?.({files:[file]}) && typeof navigator.share==='function') {
+    try { await navigator.share({files:[file],title}); return; }
     catch (error) { if (error.name==='AbortError') return; }
   }
-  await copyAgendaLink(url);
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href=url;
+  link.download=file.name;
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 
 function renderTeam(list) {
@@ -124,7 +141,7 @@ function renderTeam(list) {
     link.hash = 'team';
     return link.href;
   };
-  $('share-team').onclick = () => shareAgendaLink('Programma per il team · Agenda Ruchheim',teamLink());
+  $('share-team').onclick = () => sharePdf('Programma per il team','programma-ruchheim.pdf',list);
   $('copy-link').onclick = () => copyAgendaLink(teamLink());
   $('print').onclick = () => window.print();
 }
@@ -337,6 +354,7 @@ function renderEditor(editing) {
   $('delete-event').hidden = readOnly || isNewEvent;
   $('event-mail').hidden = !canSave || isNewEvent;
   $('share-event').hidden = isNewEvent;
+  $('copy-event-link').hidden = isNewEvent;
   const typeSlot = $('editor-type');
   if (readOnly) {
     typeSlot.innerHTML = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+escape(active.type)+'</span>';
@@ -509,28 +527,49 @@ const mailDialog = $('mail-dialog');
 const mailStates = {pending:'Programmato',sending:'In invio',sent:'Inviato',failed:'Rifiutato',unknown:'Esito non confermato',cancelled:'Annullato'};
 let mailRequest;
 
-async function loadMailHistory() {
-  const {configured,jobs,issue} = await jsonApi('/api/mail');
+function mailSummary(job) {
+  return [job.subject,job.recipient,new Date((job.claimed ?? job.due)*1000).toLocaleString('it-IT'),
+    mailStates[job.status]].join(' · ');
+}
+
+async function loadLatestMail() {
+  const {configured,jobs,issue} = await jsonApi('/api/mail?view=latest');
   $('mail-submit').disabled = !configured;
   if (!configured) $('mail-message').textContent = issue || 'Configurazione email incompleta su Cloudflare.';
+  $('mail-latest').textContent = jobs.length ? 'Ultimo invio · '+mailSummary(jobs[0]) : '';
+}
+
+async function loadAdminMailHistory() {
+  const {jobs} = await jsonApi('/api/mail?view=history');
+  $('mail-history-message').textContent = jobs.length ? '' : 'Nessun invio registrato.';
   $('mail-history').replaceChildren(...jobs.map(job=>{
     const row = document.createElement('li');
-    row.textContent = [job.subject,job.recipient,new Date(job.due*1000).toLocaleString('it-IT'),mailStates[job.status]].join(' · ');
-    if (job.status==='pending') {
+    row.textContent = mailSummary(job)+' · '+job.owner;
+    if (job.canCancel) {
       const cancel = document.createElement('button');
       cancel.type = 'button';
       cancel.className = 'plain';
       cancel.textContent = 'Annulla invio';
       cancel.onclick = async () => {
         cancel.disabled = true;
-        try { await jsonApi('/api/mail',{action:'cancel',id:job.id}); await loadMailHistory(); }
-        catch (error) { $('mail-message').textContent = error.message; cancel.disabled=false; }
+        try { await jsonApi('/api/mail',{action:'cancel',id:job.id}); await loadAdminMailHistory(); }
+        catch (error) { $('mail-history-message').textContent = error.message; cancel.disabled=false; }
       };
       row.append(' ',cancel);
     }
     return row;
   }));
 }
+
+$('open-mail-history').onclick = async () => {
+  if (!isAdmin()) return;
+  $('catalog-menu').open = false;
+  $('mail-history').replaceChildren();
+  $('mail-history-message').textContent = 'Caricamento…';
+  $('mail-history-dialog').showModal();
+  try { await loadAdminMailHistory(); }
+  catch (error) { $('mail-history-message').textContent = error.message; }
+};
 
 mailForm.elements.mode.onchange = () => {
   const scheduled = mailForm.elements.mode.value==='later';
@@ -540,11 +579,14 @@ mailForm.elements.mode.onchange = () => {
 };
 
 $('share-event').onclick = () => {
+  if (!isNewEvent) sharePdf('Scheda evento','evento-ruchheim.pdf',[active]);
+};
+$('copy-event-link').onclick = () => {
   if (isNewEvent) return;
   const link = new URL(location.pathname,location.origin);
   link.searchParams.set('event',active.id);
   link.hash = 'team';
-  shareAgendaLink(active.title,link.href);
+  copyAgendaLink(link.href);
 };
 $('event-mail').onclick = async () => {
   if (!canSave || isNewEvent || $('save').disabled) return;
@@ -555,11 +597,11 @@ $('event-mail').onclick = async () => {
   mailForm.elements.body.value = [active.title,dateLabel(active),active.time && 'Orario: '+active.time,
     'Luogo: '+(active.place || churchPlace),active.speaker && 'Relatore: '+active.speaker].filter(Boolean).join('\n').slice(0,6000);
   $('mail-zone').textContent = 'Data e ora ('+Intl.DateTimeFormat().resolvedOptions().timeZone+')';
-  $('mail-history').replaceChildren();
+  $('mail-latest').textContent = '';
   $('mail-message').textContent = '';
   $('mail-submit').disabled = true;
   mailDialog.showModal();
-  try { await loadMailHistory(); }
+  try { await loadLatestMail(); }
   catch (error) { $('mail-message').textContent=error.message; }
 };
 
@@ -586,7 +628,7 @@ mailForm.onsubmit = async event => {
       : 'Esito non ancora confermato. Controlla lo storico prima di riprovare.';
     if (result.status==='failed') mailRequest = undefined;
   } catch (error) { $('mail-message').textContent=error.message; }
-  try { await loadMailHistory(); }
+  try { await loadLatestMail(); }
   catch { $('mail-submit').disabled=false; }
 };
 
