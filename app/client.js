@@ -323,6 +323,7 @@ function renderEditor(editing) {
   $('form-message').textContent = '';
   $('save').hidden = readOnly;
   $('delete-event').hidden = readOnly || isNewEvent;
+  $('event-mail').hidden = !canSave || isNewEvent;
   const typeSlot = $('editor-type');
   if (readOnly) {
     typeSlot.innerHTML = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+escape(active.type)+'</span>';
@@ -488,6 +489,85 @@ $('delete-event').onclick = async () => {
   } finally {
     $('save').disabled = $('delete-event').disabled = false;
   }
+};
+
+const mailForm = $('mail-form');
+const mailDialog = $('mail-dialog');
+const mailStates = {pending:'Programmato',sending:'In invio',sent:'Inviato',failed:'Rifiutato',unknown:'Esito non confermato',cancelled:'Annullato'};
+let mailRequest;
+
+async function loadMailHistory() {
+  const {configured,jobs} = await jsonApi('/api/mail');
+  $('mail-submit').disabled = !configured;
+  if (!configured) $('mail-message').textContent = 'Configurazione email incompleta su Cloudflare.';
+  $('mail-history').replaceChildren(...jobs.map(job=>{
+    const row = document.createElement('li');
+    row.textContent = [job.subject,job.recipient,new Date(job.due*1000).toLocaleString('it-IT'),mailStates[job.status]].join(' · ');
+    if (job.status==='pending') {
+      const cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.className = 'plain';
+      cancel.textContent = 'Annulla invio';
+      cancel.onclick = async () => {
+        cancel.disabled = true;
+        try { await jsonApi('/api/mail',{action:'cancel',id:job.id}); await loadMailHistory(); }
+        catch (error) { $('mail-message').textContent = error.message; cancel.disabled=false; }
+      };
+      row.append(' ',cancel);
+    }
+    return row;
+  }));
+}
+
+mailForm.elements.mode.onchange = () => {
+  const scheduled = mailForm.elements.mode.value==='later';
+  $('mail-date').hidden = !scheduled;
+  mailForm.elements.when.required = scheduled;
+  $('mail-submit').textContent = scheduled ? 'Programma promemoria' : 'Invia email';
+};
+
+$('event-mail').onclick = async () => {
+  if (!canSave || isNewEvent || $('save').disabled) return;
+  mailForm.reset();
+  mailRequest = undefined;
+  mailForm.elements.mode.onchange();
+  mailForm.elements.subject.value = active.title.replace(/[\r\n]/g,' ').slice(0,200);
+  mailForm.elements.body.value = [active.title,dateLabel(active),active.time && 'Orario: '+active.time,
+    'Luogo: '+(active.place || churchPlace),active.speaker && 'Relatore: '+active.speaker].filter(Boolean).join('\n').slice(0,6000);
+  $('mail-zone').textContent = 'Data e ora ('+Intl.DateTimeFormat().resolvedOptions().timeZone+')';
+  $('mail-history').replaceChildren();
+  $('mail-message').textContent = '';
+  $('mail-submit').disabled = true;
+  mailDialog.showModal();
+  try { await loadMailHistory(); }
+  catch (error) { $('mail-message').textContent=error.message; }
+};
+
+mailForm.onsubmit = async event => {
+  event.preventDefault();
+  if ($('mail-submit').disabled) return;
+  const {to,subject,body,mode,when} = mailForm.elements;
+  const data = {action:'send',to:to.value,subject:subject.value,body:body.value};
+  if (mode.value==='later') {
+    data.due = Math.floor(new Date(when.value).getTime()/1000);
+    if (!Number.isFinite(data.due) || data.due<=Date.now()/1000) {
+      $('mail-message').textContent = 'Scegli una data e un orario futuri.';
+      return;
+    }
+  }
+  const key = JSON.stringify(data);
+  if (mailRequest?.key!==key) mailRequest = {key,id:crypto.randomUUID()};
+  $('mail-submit').disabled = true;
+  try {
+    const result = await jsonApi('/api/mail',{...data,id:mailRequest.id});
+    $('mail-message').textContent = result.status==='sent' ? 'Email inviata.'
+      : result.status==='pending' && data.due ? 'Promemoria programmato.'
+      : result.status==='failed' ? 'Invio rifiutato da Google.'
+      : 'Esito non ancora confermato. Controlla lo storico prima di riprovare.';
+    if (result.status==='failed') mailRequest = undefined;
+  } catch (error) { $('mail-message').textContent=error.message; }
+  try { await loadMailHistory(); }
+  catch { $('mail-submit').disabled=false; }
 };
 
 async function save(event) {

@@ -102,8 +102,23 @@
   <form id="event-form">
     <div class="dialog-head"><div class="editor-heading"><p class="eyebrow" id="editor-label">Scheda evento</p><h2 id="edit-title"></h2><input type="text" name="title" id="event-title" aria-label="Titolo evento" placeholder="Titolo del nuovo evento" maxlength="5000" required hidden disabled></div><div id="editor-type"></div><button type="button" class="square" id="close-editor" aria-label="Chiudi">×</button></div>
     <div id="details"></div>
-    <div class="dialog-footer"><p id="form-message" role="alert"></p><button type="button" class="danger-outline" id="delete-event" hidden><span class="delete-icon" aria-hidden="true"></span>Elimina evento</button><button type="button" class="plain" id="cancel">Chiudi</button><button type="button" class="primary" id="edit-event" hidden>Modifica</button><button class="primary success" id="save">Salva</button></div>
+    <div class="dialog-footer"><p id="form-message" role="alert"></p><button type="button" class="danger-outline" id="delete-event" hidden><span class="delete-icon" aria-hidden="true"></span>Elimina evento</button><button type="button" class="plain" id="event-mail" hidden>Email</button><button type="button" class="plain" id="cancel">Chiudi</button><button type="button" class="primary" id="edit-event" hidden>Modifica</button><button class="primary success" id="save">Salva</button></div>
   </form>
+</dialog>
+<dialog id="mail-dialog" aria-labelledby="mail-title">
+  <div class="dialog-head"><h2 id="mail-title">Email evento</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content mail-content">
+    <form id="mail-form">
+      <label>Destinatario<input name="to" type="email" maxlength="254" required></label>
+      <label>Oggetto<input name="subject" maxlength="200" required></label>
+      <label>Messaggio<textarea name="body" rows="7" maxlength="6000" required></textarea></label>
+      <label>Invio<select name="mode"><option value="now">Subito</option><option value="later">Programma promemoria</option></select></label>
+      <label id="mail-date" hidden><span id="mail-zone"></span><input name="when" type="datetime-local"></label>
+      <button class="primary success" id="mail-submit">Invia email</button>
+    </form>
+    <p id="mail-message" role="status"></p>
+    <details><summary>Storico email e promemoria</summary><ul id="mail-history"></ul></details>
+  </div>
 </dialog>
 <dialog id="catalog-dialog" aria-labelledby="catalog-title">
   <div class="dialog-head">
@@ -140,6 +155,7 @@
       </form>
       <div id="invite-output" hidden>
         <label>Link di invito · valido 48 ore<input id="invite-link" readonly></label>
+        <button type="button" class="primary" id="send-invite">Invia invito via email</button>
         <button type="button" class="plain" id="copy-invite">Copia link</button>
       </div>
     </div>

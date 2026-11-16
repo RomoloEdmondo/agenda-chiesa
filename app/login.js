@@ -65,6 +65,7 @@ $('logout').onclick = async () => {
 const labels = {admin:'Amministratore',editor:'Modifica',viewer:'Lettura'};
 let users = [];
 let selectedEmail;
+let pendingInvite;
 let adminBusy = false;
 
 const statusOf = user => user.active ? (user.activated ? 'Attivo' : 'Invito in attesa') : 'Disattivato';
@@ -112,6 +113,7 @@ function showUsers() {
   $('users-overview').hidden = false;
   $('user-panel').hidden = true;
   $('invite-output').hidden = true;
+  pendingInvite = undefined;
   $('invite-link').value = '';
   $('admin-message').textContent = '';
 }
@@ -120,6 +122,7 @@ function openUserPanel() {
   $('users-overview').hidden = true;
   $('user-panel').hidden = false;
   $('invite-output').hidden = true;
+  pendingInvite = undefined;
   $('invite-link').value = '';
   $('admin-message').textContent = '';
 }
@@ -182,6 +185,8 @@ async function modifyUser(data,button) {
       const link=new URL(location.pathname,location.origin);
       link.hash='invito='+result.code;
       $('invite-link').value=link.href;
+      pendingInvite = {action:'invite',to:data.email,code:result.code,id:crypto.randomUUID()};
+      $('send-invite').disabled=false;
       $('invite-output').hidden=false;
       $('admin-message').textContent='Invito pronto per '+data.email+'.';
     } else $('admin-message').textContent='Utente aggiornato.';
@@ -225,6 +230,23 @@ $('invite-form').onsubmit=event=>{
   event.preventDefault();
   modifyUser({action:'invite',...Object.fromEntries(new FormData(event.currentTarget))},event.submitter);
 };
+$('send-invite').onclick = async () => {
+  if (adminBusy || !pendingInvite || $('send-invite').disabled) return;
+  adminBusy = $('send-invite').disabled = true;
+  try {
+    const result = await jsonApi('/api/mail',pendingInvite);
+    $('admin-message').textContent = result.status==='sent' ? 'Invito inviato.'
+      : result.status==='failed' ? 'Invio rifiutato da Google. Puoi ancora copiare il link.'
+      : 'Esito non confermato. Controlla la posta inviata prima di riprovare.';
+    if (result.status==='failed') pendingInvite.id = crypto.randomUUID();
+  } catch (error) {
+    $('admin-message').textContent = error.message;
+  } finally {
+    adminBusy = false;
+    $('send-invite').disabled = $('admin-message').textContent==='Invito inviato.';
+  }
+};
+
 $('copy-invite').onclick=async()=>{
   try { await navigator.clipboard.writeText($('invite-link').value); $('admin-message').textContent='Link copiato.'; }
   catch { $('invite-link').select(); }

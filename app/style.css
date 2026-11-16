@@ -331,3 +331,9 @@
 #editor .editor-people .choice-control{min-height:28px}
 #editor .editor-people .choice-control input[type=text]{min-height:0}
 #editor .editor-people .choice-toggle{height:28px}
+
+.mail-content{padding-top:6px}
+#mail-form textarea{resize:vertical}
+#mail-message:not(:empty){margin:10px 0}
+#mail-history{padding-left:20px;font-size:.82rem;overflow-wrap:anywhere}
+#mail-history li{margin:6px 0}
