@@ -30,6 +30,11 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({
 const format = (date,options) => new Intl.DateTimeFormat('it-IT',{...options,timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));
 const today = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Berlin'}).format();
 const nowMonth = today.slice(0,7);
+const nextMonthDate = new Date(nowMonth+'-01T12:00:00Z');
+nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth()+1);
+const nextMonth = nextMonthDate.toISOString().slice(0,7);
+const pageSize = 25;
+let listPage = 1;
 const isYear = value => /^(?!0000)\d{4}$/.test(value);
 const closed = event => ['Concluso','Annullato'].includes(event.status);
 const speakers = event => event.speaker.split(',').map(name=>name.trim()).filter(Boolean);
@@ -62,6 +67,10 @@ function matches(event) {
   if (!period) return true;
   if (!event.date) return false;
   if (period === 'future') return end >= today;
+  if (period === 'current-month' || period === 'next-month') {
+    const selectedMonth = period === 'current-month' ? nowMonth : nextMonth;
+    return event.date.slice(0,7) <= selectedMonth && end.slice(0,7) >= selectedMonth;
+  }
   if (period === 'past') return end < today;
   if (period === 'custom') return (!from || end >= from) && (!to || event.date <= to) && (!from || !to || from <= to);
   return end >= period+'-01-01' && event.date <= period+'-12-31';
@@ -108,6 +117,15 @@ function renderCalendar(list) {
   $('more').textContent = showAll?'Mostra meno ↑':'Mostra tutti gli appuntamenti →';
 }
 
+function listPagination(total) {
+  const pages = Math.ceil(total/pageSize);
+  if (pages < 2) return '';
+  return '<nav class="list-pagination" aria-label="Paginazione appuntamenti">'+
+    '<button type="button" class="plain" data-list-page="'+(listPage-1)+'"'+(listPage===1?' disabled':'')+'>‹ Indietro</button>'+
+    '<span role="status">Pagina '+listPage+' di '+pages+'</span>'+
+    '<button type="button" class="plain" data-list-page="'+(listPage+1)+'"'+(listPage===pages?' disabled':'')+'>Avanti ›</button></nav>';
+}
+
 function renderPrep(list) {
   const cards = list.map(event=>({
     event,tasks:closed(event)?[]:event.tasks.filter(task=>!task.done)
@@ -115,10 +133,10 @@ function renderPrep(list) {
   const total = cards.reduce((sum,item)=>sum+item.tasks.length,0);
   const tracked = cards.filter(({event,tasks})=>!closed(event) && (tasks.length || event.status!=='Pronto')).length;
   $('prep').innerHTML = '<div class="panel-head"><div><h2>Attività da preparare</h2><p class="muted">'+total+' attività aperte · '+tracked+' appuntamenti da seguire</p></div></div>'+
-    (cards.length ? '<div class="prep-list">'+cards.map(({event,tasks})=>'<article class="prep-card" data-status="'+escape(event.status)+'">'+
+    (cards.length ? '<div class="prep-list">'+cards.slice((listPage-1)*pageSize,listPage*pageSize).map(({event,tasks})=>'<article class="prep-card" data-status="'+escape(event.status)+'">'+
       (event.status==='Annullato'?'<span class="prep-cancelled" aria-hidden="true">×</span>':'')+eventButton(event,event.title)+
       '<p class="muted">'+escape(dateLabel(event)+' · '+event.status+(event.responsible?' · '+event.responsible:''))+'</p>'+
-      (tasks.length?'<ul>'+tasks.map(task=>'<li>'+escape(task.label)+'</li>').join('')+'</ul>':'')+'</article>').join('')+'</div>' : empty('Nessun appuntamento con questi filtri.'));
+      (tasks.length?'<ul>'+tasks.map(task=>'<li>'+escape(task.label)+'</li>').join('')+'</ul>':'')+'</article>').join('')+'</div>' : empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
 }
 
 async function copyAgendaLink(url) {
@@ -166,7 +184,7 @@ async function sharePdf(title,fileName,events,{preview=false,single=false}={}) {
 function renderTeam(list) {
   $('team').innerHTML = '<div class="panel-head"><div><h2>Appuntamenti in programma</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
     '<div class="team-actions"><button class="primary action-with-icon" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi</button><button class="plain" id="copy-link">Copia link</button><button class="plain" id="print">Stampa / PDF</button></div></div>'+
-    (list.map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'));
+    (list.slice((listPage-1)*pageSize,listPage*pageSize).map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
   const teamLink = () => {
     const link = new URL(location.pathname,location.origin);
     for (const id of ['type-filter','period-filter','from','to']) {
@@ -182,6 +200,7 @@ function renderTeam(list) {
 
 function render() {
   const list = sorted(events.filter(matches));
+  listPage = Math.min(listPage,Math.max(1,Math.ceil(list.length/pageSize)));
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-current',b.dataset.view===view));
   for (const name of ['agenda','prep','team']) $(name).hidden = name!==view;
   $('new-event').hidden = view!=='agenda' || !mayEdit();
@@ -775,12 +794,13 @@ async function save(event) {
 }
 
 function selectView() {
+  listPage = 1;
   view = ['agenda','prep','team'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'agenda';
   const params = new URLSearchParams(location.search);
   const period = $('period-filter');
   const requested = params.get('period-filter');
   period.value = [...period.options].some(option=>option.value===requested)
-    ? requested : (view==='team'?'future':'');
+    ? requested : (view==='agenda'?'':'future');
   for (const id of ['type-filter','from','to']) $(id).value = params.get(id) || '';
   render();
 }
@@ -809,8 +829,12 @@ $('year-form').onsubmit = event => {
   if (isYear(year)) navigateMonth(year+'-'+$('calendar-month').value);
 };
 fillTypes();
-for (const id of ['type-filter','period-filter','from','to']) $(id).onchange = render;
+for (const id of ['type-filter','period-filter','from','to']) $(id).onchange = () => {
+  listPage = 1;
+  render();
+};
 $('reset').onclick = () => {
+  listPage = 1;
   for (const id of ['type-filter','period-filter','from','to']) $(id).value='';
   render();
 };
@@ -829,6 +853,16 @@ $('edit-event').onclick = () => {
 };
 $('event-form').onsubmit = save;
 document.addEventListener('click',event=>{
+  const pageButton = event.target.closest('button[data-list-page]');
+  if (pageButton) {
+    listPage = Number(pageButton.dataset.listPage);
+    render();
+    const heading = $(view).querySelector('h2');
+    heading.tabIndex = -1;
+    heading.focus();
+    heading.scrollIntoView({block:'start'});
+    return;
+  }
   const control = event.target.closest('button[data-view],button[data-event],button[data-new-date]');
   if (!control) return;
   if (control.dataset.view) {

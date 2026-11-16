@@ -609,3 +609,8 @@
     margin:0;
   }
 }
+
+.list-pagination{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:8px;border-top:1px solid var(--line)}
+.list-pagination button{min-height:44px}
+.list-pagination button:disabled{opacity:.45}
+.list-pagination span{color:var(--muted);font-size:.85rem}
