@@ -3,15 +3,20 @@ import {currentToken,setSession,jsonApi} from './session.js';
 
 const $ = id => document.getElementById(id);
 const form = $('login-form');
-const code = new URLSearchParams(location.hash.slice(1)).get('invito');
+const linkParams = new URLSearchParams(location.hash.slice(1));
+const resetCode = linkParams.get('reset');
+const code = resetCode || linkParams.get('invito');
 let mode = code ? 'activate' : 'login';
 if (code) history.replaceState(null,'',location.pathname+location.search);
 
 function renderLogin() {
-  $('login-title').textContent = {login:'Accedi all’agenda',setup:'Configura amministratore',activate:'Attiva il tuo account'}[mode];
+  $('login-title').textContent = {login:'Accedi all’agenda',setup:'Configura amministratore',activate:resetCode?'Reimposta password':'Attiva il tuo account'}[mode];
   $('login-submit').textContent = mode==='login' ? 'Accedi' : 'Imposta password';
   $('login-email').hidden = mode==='activate';
   form.elements.email.required = mode!=='activate';
+  $('confirm-password').hidden = mode!=='activate';
+  form.elements.confirmation.disabled = mode!=='activate';
+  form.elements.confirmation.required = mode==='activate';
   $('setup-code').hidden = mode!=='setup';
   form.elements.code.required = mode==='setup';
   form.elements.password.autocomplete = mode==='login' ? 'current-password' : 'new-password';
@@ -28,6 +33,12 @@ async function openAgenda(user) {
 form.onsubmit = async event => {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(form));
+  if (mode==='activate' && data.password!==data.confirmation) {
+    $('login-message').textContent = 'Le password non coincidono.';
+    form.elements.confirmation.focus();
+    return;
+  }
+  delete data.confirmation;
   $('login-submit').disabled = true;
   $('login-message').textContent = '';
   try {
@@ -43,7 +54,7 @@ form.onsubmit = async event => {
       mode = 'login';
       $('setup-toggle').hidden = true;
       renderLogin();
-      $('login-message').textContent = 'Account pronto. Accedi con la tua email e password.';
+      $('login-message').textContent = resetCode ? 'Password aggiornata. Accedi con la nuova password.' : 'Account confermato. Accedi con la tua email e password.';
     }
   } catch(error) {
     $('login-message').textContent = error.message;
@@ -68,7 +79,11 @@ let selectedEmail;
 let pendingInvite;
 let adminBusy = false;
 
-const statusOf = user => user.active ? (user.activated ? 'Attivo' : 'Invito in attesa') : 'Disattivato';
+const statusOf = user => {
+  if (!user.active) return 'Disattivato';
+  if (user.activated) return user.invite_expires > Date.now()/1000 ? 'Confermato · Reset in attesa' : 'Confermato';
+  return user.invite_expires <= Date.now()/1000 ? 'Invito scaduto' : 'Invito in attesa';
+};
 
 function userIdentity(user) {
   const identity = document.createElement('span');
@@ -146,7 +161,7 @@ function showUser(email) {
     if (user.active) {
       choices.push(['role',user.role==='editor'?'viewer':'editor',user.role==='editor'?'Imposta sola lettura':'Consenti modifica']);
     }
-    choices.push(['invite',user.role,!user.active?'Riattiva con un invito':user.activated?'Reimposta password':'Crea un nuovo invito']);
+    choices.push([user.active && user.activated?'reset':'invite',user.role,!user.active?'Invia invito di riattivazione':user.activated?'Invia link di reimpostazione':'Invia un nuovo invito']);
     if (user.active) choices.push(['disable',user.role,'Disattiva accesso']);
     for (const [action,role,label] of choices) {
       const button = document.createElement('button');
@@ -155,7 +170,7 @@ function showUser(email) {
       button.textContent = label;
       button.onclick = () => {
         const confirmation = action==='disable' ? 'Disattivare l’accesso di '+email+'?'
-          : action==='invite' && user.activated ? 'Reimpostare la password di '+email+'? L’utente dovrà usare il nuovo invito per accedere.' : '';
+          : action==='reset' ? 'Inviare a '+email+' un link per scegliere una nuova password?' : '';
         if (!confirmation || window.confirm(confirmation)) modifyUser({action,email,role},button);
       };
       actions.append(button);
@@ -171,6 +186,7 @@ async function modifyUser(data,button) {
   button.disabled=true;
   $('user-back').disabled=true;
   $('admin-message').textContent='Aggiornamento in corso…';
+  let send = false;
   try {
     const result = await jsonApi('/api/users',data);
     try {
@@ -183,12 +199,13 @@ async function modifyUser(data,button) {
     }
     if (result.code) {
       const link=new URL(location.pathname,location.origin);
-      link.hash='invito='+result.code;
+      link.hash=(result.reset?'reset':'invito')+'='+result.code;
       $('invite-link').value=link.href;
-      pendingInvite = {action:'invite',to:data.email,code:result.code,id:crypto.randomUUID()};
+      pendingInvite = {action:'invite',to:data.email,code:result.code,id:crypto.randomUUID(),reset:result.reset};
       $('send-invite').disabled=false;
       $('invite-output').hidden=false;
-      $('admin-message').textContent='Invito pronto per '+data.email+'.';
+      $('send-invite').textContent = result.reset ? 'Invia link di reimpostazione' : 'Invia invito via email';
+      send = true;
     } else $('admin-message').textContent='Utente aggiornato.';
   } catch(error) { $('admin-message').textContent=error.message; }
   finally {
@@ -197,6 +214,7 @@ async function modifyUser(data,button) {
     $('user-back').disabled=false;
     if (selectedEmail) $('user-back').focus();
   }
+  if (send) await sendInvite();
 }
 $('user-back').onclick=()=>{
   showUsers();
@@ -230,12 +248,16 @@ $('invite-form').onsubmit=event=>{
   event.preventDefault();
   modifyUser({action:'invite',...Object.fromEntries(new FormData(event.currentTarget))},event.submitter);
 };
-$('send-invite').onclick = async () => {
+async function sendInvite() {
   if (adminBusy || !pendingInvite || $('send-invite').disabled) return;
   adminBusy = $('send-invite').disabled = true;
+  let sent = false;
+  $('user-back').disabled = true;
+  $('admin-message').textContent = 'Invio email in corso…';
   try {
     const result = await jsonApi('/api/mail',pendingInvite);
-    $('admin-message').textContent = result.status==='sent' ? 'Invito inviato.'
+    sent = result.status==='sent';
+    $('admin-message').textContent = sent ? (pendingInvite.reset?'Link di reimpostazione inviato.':'Invito inviato.')
       : result.status==='failed' ? 'Invio rifiutato da Google. Puoi ancora copiare il link.'
       : 'Esito non confermato. Controlla la posta inviata prima di riprovare.';
     if (result.status==='failed') pendingInvite.id = crypto.randomUUID();
@@ -243,9 +265,11 @@ $('send-invite').onclick = async () => {
     $('admin-message').textContent = error.message;
   } finally {
     adminBusy = false;
-    $('send-invite').disabled = $('admin-message').textContent==='Invito inviato.';
+    $('send-invite').disabled = sent;
+    $('user-back').disabled = false;
   }
-};
+}
+$('send-invite').onclick = sendInvite;
 
 $('copy-invite').onclick=async()=>{
   try { await navigator.clipboard.writeText($('invite-link').value); $('admin-message').textContent='Link copiato.'; }

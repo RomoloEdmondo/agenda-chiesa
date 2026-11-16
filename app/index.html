@@ -29,6 +29,7 @@
   <form id="login-form">
     <label id="login-email">Email<input name="email" type="email" autocomplete="username" maxlength="254" required></label>
     <label>Password<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label>
+    <label id="confirm-password" hidden>Conferma password<input name="confirmation" type="password" autocomplete="new-password" maxlength="256" disabled></label>
     <label id="setup-code" hidden>Codice di configurazione<input name="code" type="password" maxlength="128" autocomplete="off"></label>
     <button class="primary" id="login-submit">Accedi</button>
   </form>
@@ -151,7 +152,7 @@
         <h3>Invita utente</h3>
         <label>Email<input name="email" type="email" required maxlength="254"></label>
         <label>Permessi<select name="role"><option value="viewer">Lettura</option><option value="editor">Modifica</option></select></label>
-        <button class="primary">Crea invito</button>
+        <button class="primary">Crea e invia invito</button>
       </form>
       <div id="invite-output" hidden>
         <label>Link di invito · valido 48 ore<input id="invite-link" readonly></label>
