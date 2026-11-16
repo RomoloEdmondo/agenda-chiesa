@@ -253,7 +253,7 @@
   #editor .dialog-head,#editor .dialog-footer{padding:10px 12px}
   #editor #details{padding:10px 12px}
   .editor-overview{grid-template-columns:minmax(0,1fr);gap:9px}
-  .editor-people{grid-template-columns:repeat(2,minmax(0,1fr))}
+
   #editor-type{flex-basis:105px}
   #editor-type .choice-control input{font-size:.75rem;padding-inline:3px}
   #editor-type .choice-toggle{width:22px}
@@ -267,7 +267,7 @@
 #editor .event-location .event-place{grid-column:auto;min-width:0}
 #editor .event-location .event-place-row{min-height:36px}
 .editor-people-card{background:#eef6fa;border-color:#d0e2ed}
-.editor-notes{background:#f5f6f7;border-color:#dce2e7;box-shadow:none}
+.editor-notes{background:#eef1f3;border-color:#dce2e7;box-shadow:none}
 #editor .editor-notes textarea{background:#fff}
 #editor .editor-card.tasks{border-left:3px solid #4b8867;background:#f8fbf9}
 #editor .checklist-heading{color:#28563e}
@@ -320,8 +320,14 @@
 #editor .editor-overview .editor-card{padding:10px 12px}
 #editor .editor-overview h3{margin-bottom:7px}
 #editor .editor-overview .fields{row-gap:7px}
-#editor .editor-overview .editor-people{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#editor .editor-overview .editor-people{grid-template-columns:minmax(0,1fr);gap:5px}
 #editor .editor-overview .fields input:not([type=checkbox]),#editor .editor-overview .fields select{min-height:32px}
 #editor .editor-overview .choice-control{min-height:32px}
 #editor .editor-overview .choice-toggle{height:32px;width:30px}
 #editor .event-options summary{padding-block:3px}
+
+#editor .editor-people label{gap:3px}
+#editor .editor-people input[type=text]{padding:3px 7px;min-height:28px}
+#editor .editor-people .choice-control{min-height:28px}
+#editor .editor-people .choice-control input[type=text]{min-height:0}
+#editor .editor-people .choice-toggle{height:28px}
