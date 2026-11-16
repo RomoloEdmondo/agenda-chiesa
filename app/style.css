@@ -518,3 +518,65 @@
 #activity-list li{display:grid;gap:3px;padding:9px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 #activity-list small{color:var(--muted)}
 #activity-more{margin-top:8px;min-height:44px}
+
+#editor .editor-actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  margin-left:auto;
+  min-width:0;
+}
+#editor .editor-actions #cancel{margin-left:0}
+#event-sharing{position:relative}
+#event-sharing summary{cursor:pointer;list-style:none}
+#event-sharing summary::-webkit-details-marker{display:none}
+#event-sharing summary .action-icon:last-child{width:11px;height:11px}
+#event-sharing[open] summary{background:var(--soft)}
+.event-sharing-options{
+  position:absolute;
+  z-index:5;
+  bottom:calc(100% + 6px);
+  left:0;
+  width:max-content;
+  min-width:148px;
+  padding:4px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--paper);
+  box-shadow:0 6px 20px #172d3d29;
+}
+.event-sharing-options button{
+  display:block;
+  width:100%;
+  min-height:40px;
+  text-align:left;
+}
+@media screen and (max-width:620px){
+  #editor .event-schedule{
+    grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr);
+    gap:8px;
+  }
+  #editor .event-schedule > label:last-child{grid-column:1 / -1}
+  #editor input[type="date"],
+  #editor input[type="time"]{
+    display:block;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+    font-size:16px;
+  }
+  #editor input[type="date"]::-webkit-date-and-time-value,
+  #editor input[type="time"]::-webkit-date-and-time-value{
+    min-width:0;
+    text-align:left;
+  }
+  #editor .dialog-footer{gap:5px}
+  #editor .editor-actions button,
+  #editor .editor-actions summary{min-height:36px}
+  #editor .event-sharing-options button{min-height:44px}
+  #editor #delete-event{justify-content:center;min-width:38px;min-height:36px}
+  #editor .delete-event-label{display:none}
+}

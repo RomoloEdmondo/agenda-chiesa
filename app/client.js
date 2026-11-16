@@ -388,8 +388,8 @@ function renderEditor(editing) {
   $('save').hidden = readOnly;
   $('delete-event').hidden = readOnly || isNewEvent;
   $('event-mail').hidden = !canSave || isNewEvent;
-  $('share-event').hidden = isNewEvent;
-  $('copy-event-link').hidden = isNewEvent;
+  $('event-sharing').hidden = isNewEvent;
+  $('event-sharing').open = false;
   const typeSlot = $('editor-type');
   if (readOnly) {
     typeSlot.innerHTML = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+escape(active.type)+'</span>';
@@ -671,6 +671,21 @@ mailForm.elements.mode.onchange = () => {
   mailForm.elements.when.required = scheduled;
   $('mail-submit').textContent = scheduled ? 'Programma promemoria' : 'Invia email';
 };
+
+const sharing = $('event-sharing');
+sharing.addEventListener('click',event=>{
+  if (event.target.closest('button')) sharing.open = false;
+});
+$('editor').addEventListener('click',event=>{
+  if (!sharing.contains(event.target)) sharing.open = false;
+});
+sharing.addEventListener('keydown',event=>{
+  if (event.key !== 'Escape' || !sharing.open) return;
+  event.preventDefault();
+  event.stopPropagation();
+  sharing.open = false;
+  sharing.querySelector('summary').focus();
+});
 
 $('share-event').onclick = () => {
   if (!isNewEvent) sharePdf(active.title,'evento-ruchheim.pdf',[active],{single:true});
