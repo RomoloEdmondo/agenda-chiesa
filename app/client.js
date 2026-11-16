@@ -143,7 +143,7 @@ async function sharePdf(title,fileName,events,{preview=false,single=false}={}) {
 }
 
 function renderTeam(list) {
-  $('team').innerHTML = '<div class="panel-head"><div><h2>Programma per il team</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
+  $('team').innerHTML = '<div class="panel-head"><div><h2>Appuntamenti in programma</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
     '<div class="team-actions"><button class="primary action-with-icon" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi</button><button class="plain" id="copy-link">Copia link</button><button class="plain" id="print">Stampa / PDF</button></div></div>'+
     (list.map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'));
   const teamLink = () => {
@@ -168,7 +168,7 @@ function render() {
   const titles = {
     agenda:['Agenda della comunità','Appuntamenti e preparazione del programma della comunità.'],
     prep:['Preparazione','Checklist e responsabilità per gli appuntamenti in programma.'],
-    team:['Vista team','Programma della comunità.']
+    team:['Programma','Programma della comunità.']
   };
   $('page-title').textContent = titles[view][0];
   $('page-subtitle').textContent = titles[view][1];

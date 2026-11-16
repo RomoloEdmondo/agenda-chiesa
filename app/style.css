@@ -344,3 +344,85 @@
 
 #mail-latest:not(:empty){padding:10px;border:1px solid var(--line);border-radius:8px;font-size:.82rem}
 #mail-history-message:not(:empty){margin-top:10px}
+
+.agenda-nav-menu-label{display:none}
+
+@media screen and (max-width:700px){
+  #protected-app{
+    --agenda-nav-height:68px;
+    padding-bottom:calc(var(--agenda-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .top-inner .agenda-nav{
+    position:fixed;
+    inset:auto 0 0;
+    width:auto;
+    min-height:calc(var(--agenda-nav-height) + env(safe-area-inset-bottom, 0px));
+    box-sizing:border-box;
+    display:flex;
+    justify-content:center;
+    align-items:stretch;
+    flex-wrap:nowrap;
+    gap:4px;
+    padding:5px max(8px, env(safe-area-inset-right, 0px)) calc(5px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+    background:var(--paper);
+    border-top:1px solid var(--line);
+    box-shadow:0 -5px 22px rgba(21, 77, 112, .09);
+  }
+
+  .top-inner .agenda-nav > button[data-view],
+  .agenda-nav #catalog-menu{
+    flex:1 1 0;
+    min-width:0;
+    max-width:140px;
+    margin:0;
+  }
+
+  .top-inner .agenda-nav > button[data-view],
+  .agenda-nav #catalog-menu summary{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:4px;
+    min-height:52px;
+    padding:4px 1px;
+    background:transparent;
+    color:#435970;
+    border:0;
+    border-radius:12px;
+    font-size:.6875rem;
+    font-weight:650;
+    line-height:1.2;
+  }
+
+  .top-inner .agenda-nav > button[data-view][aria-current="true"],
+  .agenda-nav #catalog-menu[open] summary{
+    color:#154d70;
+    background:#e7f1f8;
+    font-weight:800;
+  }
+
+  .top-inner .agenda-nav .action-icon{
+    width:21px;
+    height:21px;
+    flex:none;
+  }
+
+  .agenda-nav-menu-label{display:block}
+
+  .agenda-nav #catalog-menu .catalog-menu-items{
+    top:auto;
+    bottom:calc(100% + 8px);
+    left:auto;
+    right:max(8px, env(safe-area-inset-right, 0px));
+    width:min(248px, 85%);
+    max-height:min(55vh, 22rem);
+    overflow:auto;
+    padding:6px;
+    border-radius:12px;
+    box-shadow:0 8px 25px rgba(21, 77, 112, .18);
+  }
+
+  .agenda-nav .catalog-menu-items button{min-height:44px}
+}
