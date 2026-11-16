@@ -115,16 +115,16 @@ function pdfEvent(event) {
   ]};
 }
 
-function makeAgendaFile(title,fileName,events) {
-  return new File([agendaPdf(title,events.map(pdfEvent))],fileName,{type:'application/pdf'});
+function makeAgendaFile(title,fileName,events,single) {
+  return new File([agendaPdf(title,events.map(pdfEvent),{single})],fileName,{type:'application/pdf'});
 }
 
-async function sharePdf(title,fileName,events,preview=false) {
+async function sharePdf(title,fileName,events,{preview=false,single=false}={}) {
   let file;
   try {
     const ready = pdfLogoReady();
     if (ready) await ready;
-    file = makeAgendaFile(title,fileName,events);
+    file = makeAgendaFile(title,fileName,events,single);
   } catch {
     notice('Impossibile preparare il PDF. Riprova tra poco.');
     return;
@@ -156,7 +156,7 @@ function renderTeam(list) {
   };
   $('share-team').onclick = () => sharePdf('Programma per il team','programma-ruchheim.pdf',list);
   $('copy-link').onclick = () => copyAgendaLink(teamLink());
-  $('print').onclick = () => sharePdf('Programma per il team','programma-ruchheim.pdf',list,true);
+  $('print').onclick = () => sharePdf('Programma per il team','programma-ruchheim.pdf',list,{preview:true});
 }
 
 function render() {
@@ -592,7 +592,7 @@ mailForm.elements.mode.onchange = () => {
 };
 
 $('share-event').onclick = () => {
-  if (!isNewEvent) sharePdf('Scheda evento','evento-ruchheim.pdf',[active]);
+  if (!isNewEvent) sharePdf(active.title,'evento-ruchheim.pdf',[active],{single:true});
 };
 $('copy-event-link').onclick = () => {
   if (isNewEvent) return;
