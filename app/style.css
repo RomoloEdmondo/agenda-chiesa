@@ -348,6 +348,70 @@
 .agenda-nav-menu-label{display:none}
 
 @media screen and (max-width: 760px), screen and (max-width: 1100px) and (hover: none) and (pointer: coarse){
+  #protected-app > .wrap{padding-top:12px}
+
+  .filters{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:6px 8px;
+    padding:9px 11px;
+    margin-bottom:12px;
+  }
+
+  .filters > label,
+  #date-filters > label{min-width:0}
+
+  #date-filters{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  #reset{
+    grid-column:1 / -1;
+    justify-self:end;
+    padding:4px 6px;
+    min-height:32px;
+  }
+
+  #reset.filters-idle{display:none}
+
+  .calendar .panel-head{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    gap:8px;
+    padding:10px 12px 8px;
+  }
+
+  .calendar .panel-head .eyebrow{display:none}
+  .calendar .panel-head h2{font-size:1.45rem;line-height:1.15}
+
+  .calendar .panel-head #new-event{
+    grid-column:2;
+    grid-row:1;
+    min-height:36px;
+    padding-inline:9px;
+    white-space:nowrap;
+  }
+
+  .calendar-period{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .calendar-period form{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+  }
+
+  .calendar-period select,
+  .calendar-period input#calendar-year{width:100%!important;min-width:0}
+  .calendar-period .plain{min-height:36px}
+  .calendar .monthbar{padding:0 12px 8px;gap:8px}
+  .monthbar h3{font-size:.96rem}
+
+
   #protected-app{
     --agenda-nav-safe-bottom:min(14px, env(safe-area-inset-bottom, 0px));
     --agenda-nav-height:calc(55px + var(--agenda-nav-safe-bottom));

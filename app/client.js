@@ -8,11 +8,17 @@ const agendaNav = document.querySelector('.agenda-nav');
 const headerActions = document.querySelector('.top-inner .account-actions');
 const mobileNavigation = window.matchMedia('(max-width: 760px), (max-width: 1100px) and (hover: none) and (pointer: coarse)');
 
+const newEventButton = $('new-event');
+const calendarHeader = document.querySelector('.calendar .panel-head');
+const monthHeading = document.querySelector('.month-heading');
+
 function placeAgendaNavigation() {
   if (mobileNavigation.matches) {
     $('protected-app').append(agendaNav);
+    calendarHeader.append(newEventButton);
   } else {
     headerActions.before(agendaNav);
+    monthHeading.append(newEventButton);
   }
 }
 
@@ -180,6 +186,7 @@ function render() {
   for (const name of ['agenda','prep','team']) $(name).hidden = name!==view;
   $('new-event').hidden = view!=='agenda' || !mayEdit();
   $('date-filters').hidden = $('period-filter').value!=='custom';
+  $('reset').classList.toggle('filters-idle', !$('type-filter').value && !$('period-filter').value);
   const titles = {
     agenda:['Agenda della comunità','Appuntamenti e preparazione del programma della comunità.'],
     prep:['Preparazione','Checklist e responsabilità per gli appuntamenti in programma.'],
