@@ -680,3 +680,14 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
 .attachment-preview img,.attachment-preview pre{flex-basis:100%;max-width:100%;max-height:45vh}
 .attachment-preview img{object-fit:contain}
 .attachment-preview pre{overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
+
+#editor.event-preview .editor-heading,#editor.event-preview #edit-title{min-width:0;overflow-wrap:anywhere}
+#editor .event-fact{display:grid;gap:4px;min-width:0;color:var(--muted);font-size:.8rem;font-weight:720}
+#editor .event-fact-value{color:var(--ink);font-size:.9rem;font-weight:600;overflow-wrap:anywhere}
+#editor .event-options .event-fact{flex:1;max-width:100%}
+#editor .event-text{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0}
+#editor .preview-task{grid-template-columns:20px minmax(0,1fr);min-height:26px;overflow-wrap:anywhere}
+#editor .task-indicator{color:var(--green);text-align:center}
+@media(max-width:460px){
+  #editor .event-schedule > [data-field="status"]{grid-column:1/-1}
+}

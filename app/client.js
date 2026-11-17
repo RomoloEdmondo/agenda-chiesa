@@ -405,7 +405,7 @@ const churchAddress = 'Oggersheimer Str. 2, 67071 Ludwigshafen';
 const churchPlace = 'Christliche Gemeinde Ruchheim · '+churchAddress;
 const churchMap = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(churchAddress);
 
-function openEditor(event, editing=view!=='team', date='') {
+function openEditor(event, editing=!event, date='') {
   isNewEvent = !event;
   active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date,end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
   renderEditor(editing);
@@ -560,69 +560,97 @@ function renderEditor(editing) {
   $('event-sharing').hidden = isNewEvent;
   $('event-sharing').open = false;
   const typeSlot = $('editor-type');
-  if (readOnly) {
-    typeSlot.innerHTML = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+escape(active.type)+'</span>';
-    $('details').innerHTML = '<dl class="readonly">'+fields.filter(([key])=>!['title','type'].includes(key) &&
-      (view!=='team' || !['end','materials','description'].includes(key) || active[key]?.trim())).map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
-      escape(key==='place' ? place : (['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
-      '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul><details class="event-materials"><summary>File e documenti</summary>'+attachments+'</details>';
-  } else {
-    function renderField([key,label,kind]) {
-      const value = escape(active[key]);
-      if (key==='date') {
-        return '<label><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Data</span><input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
-      }
-      if (key==='time') {
-        return '<label><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Orario</span><input type="time" name="time" value="'+value+'"></label>';
-      }
-      if (key==='end') {
-        return '<details class="event-end"'+(active.end?' open':'')+'><summary>Data fine</summary><label class="event-end-input">'+
-          '<input type="date" name="end" aria-label="Data fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+value+'"></label></details>';
-      }
-      if (key==='place') {
-        const isDefault = place===churchPlace || place.trim().toLowerCase()==='christliche gemeinde ruchheim';
-        return '<details class="event-place"'+(isDefault?'':' open')+'><summary>Luogo</summary><div class="event-place-row">'+
-          '<div id="event-place-preview">'+(isDefault ? '<strong>Christliche Gemeinde Ruchheim</strong> <span aria-hidden="true">·</span> <a href="'+churchMap+
-          '" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>' : escape(place))+'</div>'+
-          '<input type="text" name="place" id="event-place-input" aria-label="Luogo" value="'+escape(place)+'" maxlength="5000" hidden>'+
-          '<button type="button" id="edit-place" class="icon-button" aria-label="Modifica luogo" title="Modifica luogo">✎</button></div></details>';
-      }
-      if (key==='description') {
-        return '<details class="event-description"'+(active.description?.trim()?' open':'')+'><summary>Descrizione</summary>'+
-          '<textarea name="description" aria-label="Descrizione" rows="3" maxlength="5000">'+value+'</textarea></details>';
-      }
-      if (key==='materials') {
-        return '<details class="event-materials wide"><summary>Materiali e link'+(active.materials?' · presenti':'')+
-          '</summary><textarea name="materials" aria-label="Materiali e link" rows="3" maxlength="5000">'+value+'</textarea>'+attachments+'</details>';
-      }
-      if (kind==='suggestions') {
-        const names = catalogNames(key);
-        return '<div class="event-choice"><label for="event-'+key+'">'+label+'</label>'+
-          '<div class="choice-control"><input id="event-'+key+'" type="text" name="'+key+
-          '" maxlength="5000" value="'+value+'"'+(key==='type'?' required':'')+
-          (key==='type'?' placeholder="Scegli o scrivi"':'')+'>'+
-          '<button type="button" class="icon-button choice-toggle" aria-label="Mostra elenco: '+label+
-          '" aria-expanded="false" aria-controls="'+key+'-choices"'+(names.length?'':' disabled')+'></button></div>'+
-          '<div class="choice-options" id="'+key+'-choices" hidden>'+
-          names.map(name=>'<button type="button" data-value="'+escape(name)+'">'+escape(name)+'</button>').join('')+'</div></div>';
-      }
-      const field = kind==='select' ? '<select name="'+key+'">'+statuses.map(v=>option(v,v,v===active[key])).join('')+'</select>'
-        : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
-        : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
-      return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
+  $('editor').classList.toggle('event-preview',readOnly);
+  const fieldIcons = {"date":"<svg class=\"action-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 10h18\"/></svg>","time":"<svg class=\"action-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/></svg>"};
+
+  function previewField(key,label) {
+    const value = escape(active[key]);
+    if (key==='description' || key==='materials') {
+      const description = key==='description';
+      const content = value ? '<p class="event-text">'+value+'</p>' : '';
+      return '<details class="'+(description?'event-description':'event-materials wide')+
+        '"'+(value?' open':'')+'><summary>'+label+'</summary>'+
+        (description ? content || '<p class="event-text muted">Nessuna descrizione.</p>' : content+attachments)+'</details>';
     }
-    const field = key => renderField(fields.find(([name])=>name===key));
-    typeSlot.innerHTML = field('type');
-    $('details').innerHTML = '<div class="editor-overview">'+
-      '<section class="editor-card editor-program-card"><h3>Programma</h3><div class="fields">'+
-      '<div class="event-schedule wide">'+['date','time','status'].map(field).join('')+'</div>'+
-      '<div class="event-options wide">'+field('end')+field('place')+'</div>'+
-      '</div></section><section class="editor-card editor-people-card"><h3 class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/></svg>Persone</h3><div class="editor-people">'+
-      ['responsible','speaker'].map(field).join('')+'</div></section></div>'+
-      '<div class="editor-notes">'+['description','materials'].map(field).join('')+'</div>'+
-      '<section class="editor-card tasks"><div class="checklist-heading"><h3>Checklist</h3>'+
-      '<span id="checklist-summary"></span></div><div id="task-list"></div>'+
-      '<button type="button" class="plain" id="add-task">＋ Aggiungi attività</button></section>';
+    if (key==='end' && !value) return '';
+    let display = value;
+    if (key==='type') display = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+value+'</span>';
+    if (['date','end'].includes(key) && value) {
+      display = escape(format(active[key],{day:'2-digit',month:'2-digit',year:'numeric'}));
+    }
+    if (key==='place') {
+      display = place===churchPlace || place.trim().toLowerCase()==='christliche gemeinde ruchheim'
+        ? '<strong>Christliche Gemeinde Ruchheim</strong> · <a href="'+churchMap+'" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>'
+        : escape(place);
+    }
+    return '<div class="event-fact" data-field="'+key+'"><span class="event-field-label">'+(fieldIcons[key] || '')+label+
+      '</span><div class="event-fact-value">'+(display || '<span class="muted">Da definire</span>')+'</div></div>';
+  }
+  function renderField([key,label,kind]) {
+    if (readOnly) return previewField(key,label);
+    const value = escape(active[key]);
+    if (key==='date') {
+      return '<label><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Data</span><input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
+    }
+    if (key==='time') {
+      return '<label><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Orario</span><input type="time" name="time" value="'+value+'"></label>';
+    }
+    if (key==='end') {
+      return '<details class="event-end"'+(active.end?' open':'')+'><summary>Data fine</summary><label class="event-end-input">'+
+        '<input type="date" name="end" aria-label="Data fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+value+'"></label></details>';
+    }
+    if (key==='place') {
+      const isDefault = place===churchPlace || place.trim().toLowerCase()==='christliche gemeinde ruchheim';
+      return '<details class="event-place"'+(isDefault?'':' open')+'><summary>Luogo</summary><div class="event-place-row">'+
+        '<div id="event-place-preview">'+(isDefault ? '<strong>Christliche Gemeinde Ruchheim</strong> <span aria-hidden="true">·</span> <a href="'+churchMap+
+        '" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>' : escape(place))+'</div>'+
+        '<input type="text" name="place" id="event-place-input" aria-label="Luogo" value="'+escape(place)+'" maxlength="5000" hidden>'+
+        '<button type="button" id="edit-place" class="icon-button" aria-label="Modifica luogo" title="Modifica luogo">✎</button></div></details>';
+    }
+    if (key==='description') {
+      return '<details class="event-description"'+(active.description?.trim()?' open':'')+'><summary>Descrizione</summary>'+
+        '<textarea name="description" aria-label="Descrizione" rows="3" maxlength="5000">'+value+'</textarea></details>';
+    }
+    if (key==='materials') {
+      return '<details class="event-materials wide"><summary>Materiali e link'+(active.materials?' · presenti':'')+
+        '</summary><textarea name="materials" aria-label="Materiali e link" rows="3" maxlength="5000">'+value+'</textarea>'+attachments+'</details>';
+    }
+    if (kind==='suggestions') {
+      const names = catalogNames(key);
+      return '<div class="event-choice"><label for="event-'+key+'">'+label+'</label>'+
+        '<div class="choice-control"><input id="event-'+key+'" type="text" name="'+key+
+        '" maxlength="5000" value="'+value+'"'+(key==='type'?' required':'')+
+        (key==='type'?' placeholder="Scegli o scrivi"':'')+'>'+
+        '<button type="button" class="icon-button choice-toggle" aria-label="Mostra elenco: '+label+
+        '" aria-expanded="false" aria-controls="'+key+'-choices"'+(names.length?'':' disabled')+'></button></div>'+
+        '<div class="choice-options" id="'+key+'-choices" hidden>'+
+        names.map(name=>'<button type="button" data-value="'+escape(name)+'">'+escape(name)+'</button>').join('')+'</div></div>';
+    }
+    const field = kind==='select' ? '<select name="'+key+'">'+statuses.map(v=>option(v,v,v===active[key])).join('')+'</select>'
+      : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
+      : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
+    return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
+  }
+  const field = key => renderField(fields.find(([name])=>name===key));
+  typeSlot.innerHTML = field('type');
+  $('details').innerHTML = '<div class="editor-overview">'+
+    '<section class="editor-card editor-program-card"><h3>Programma</h3><div class="fields">'+
+    '<div class="event-schedule wide">'+['date','time','status'].map(field).join('')+'</div>'+
+    '<div class="event-options wide">'+field('end')+field('place')+'</div>'+
+    '</div></section><section class="editor-card editor-people-card"><h3 class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/></svg>Persone</h3><div class="editor-people">'+
+    ['responsible','speaker'].map(field).join('')+'</div></section></div>'+
+    '<div class="editor-notes">'+['description','materials'].map(field).join('')+'</div>'+
+    '<section class="editor-card tasks"><div class="checklist-heading"><h3>Checklist</h3>'+
+    '<span id="checklist-summary"></span></div><div id="task-list"></div>'+
+    (readOnly ? '' : '<button type="button" class="plain" id="add-task">＋ Aggiungi attività</button>')+'</section>';
+  if (readOnly) {
+    $('task-list').innerHTML = active.tasks.map(task=>'<div class="task preview-task">'+
+      '<span class="task-indicator" role="img" aria-label="'+(task.done?'Completata':'Da completare')+'">'+(task.done?'✓':'○')+'</span>'+
+      '<span>'+escape(task.label)+'</span></div>').join('');
+    const total = active.tasks.length;
+    const done = active.tasks.filter(task=>task.done).length;
+    $('checklist-summary').textContent = total ? done+' di '+total+' completate' : 'Nessuna attività';
+  } else {
     const placeInput = $('event-place-input');
     $('edit-place').onclick = () => {
       $('event-place-preview').hidden = true;
