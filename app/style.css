@@ -715,3 +715,37 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
   #editor .dialog-footer #event-sharing summary{min-height:36px;padding-inline:5px}
   .admin-menu-items{right:-16px}
 }
+
+#login-shell{width:min(420px,calc(100% - 32px));margin:clamp(20px,8dvh,80px) auto;padding:clamp(18px,5vw,30px)}
+#login-shell .login-logo{width:clamp(122px,39vw,165px);height:auto;margin-bottom:13px}
+#login-shell h1{text-align:center;font-size:clamp(1.55rem,6vw,2.2rem);line-height:1.12}
+#login-shell input,#login-submit,#passkey-login{min-height:44px}
+#login-shell input{font-size:16px}
+.passkey-divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:.8rem}
+.passkey-divider::before,.passkey-divider::after{content:'';height:1px;background:var(--line);flex:1}
+#passkey-login{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--line);background:var(--paper);color:var(--green);font-weight:750;
+}
+#passkey-login:hover{background:var(--soft)}
+#login-message:empty,#passkey-status:empty,#password-status:empty,#passkey-list:empty{display:none}
+#login-message:not(:empty){
+  border:1px solid #ecc2ca;border-radius:9px;background:#fff1f3;color:#852337;
+  padding:9px 12px;font-size:.88rem;line-height:1.4;
+}
+#login-message[data-kind="success"]{border-color:#b9dfcb;background:#eef8f2;color:#235e42}
+#account-menu{position:relative;min-width:0}
+#account-menu summary{display:flex;align-items:center;gap:5px;cursor:pointer;list-style:none;border-radius:9px;padding:8px;color:var(--green);font-weight:750}
+#account-menu summary::-webkit-details-marker{display:none}
+#account-menu[open] summary,#account-menu summary:hover{background:var(--soft)}
+#account-menu summary .action-icon{flex:none}
+#account-name{max-width:clamp(72px,18vw,170px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#account-menu .admin-menu-items{right:0}
+#account-menu #logout{color:#9b263b}
+#account-menu #logout:hover{background:#fff1f3}
+#passkey-dialog,#password-dialog{width:min(480px,calc(100% - 24px))}
+#passkey-dialog .account-content,#password-dialog .account-content{padding-top:14px}
+#passkey-list{list-style:none;margin:12px 0;padding:0}
+#passkey-list li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+#passkey-list li div{display:grid;gap:3px;min-width:0;overflow-wrap:anywhere}
+#passkey-list li span{font-size:.8rem;color:var(--muted)}

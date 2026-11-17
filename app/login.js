@@ -3,6 +3,16 @@ import {currentToken,setSession,jsonApi} from './session.js';
 
 const $ = id => document.getElementById(id);
 const form = $('login-form');
+const accountMenu = $('account-menu');
+document.addEventListener('click',event=>{
+  if (!accountMenu.contains(event.target) || event.target.closest('#account-menu button')) accountMenu.open = false;
+});
+accountMenu.addEventListener('keydown',event=>{
+  if (event.key==='Escape' && accountMenu.open) {
+    accountMenu.open = false;
+    accountMenu.querySelector('summary').focus();
+  }
+});
 const adminMenu = $('admin-menu');
 document.addEventListener('click',event=>{
   if (!adminMenu.contains(event.target) || event.target.closest('.admin-menu-items button')) adminMenu.open = false;
@@ -62,7 +72,7 @@ async function exchangePasskey(registration,request) {
   const data = {publicKey:credentialOptions(options,registration)};
   const credential = await (registration ? navigator.credentials.create(data) : navigator.credentials.get(data));
   if (!credential) throw new Error('Operazione annullata.');
-  return jsonApi(path+'/verify',{id,response:credentialJSON(credential,registration)});
+  return jsonApi(path+'/verify',{id,response:credentialJSON(credential,registration),...(registration ? {name:request.name} : {})});
 }
 
 const passkeyMessage = error => error.name==='NotAllowedError'
@@ -70,20 +80,20 @@ const passkeyMessage = error => error.name==='NotAllowedError'
 
 passkeyLogin.onclick = async () => {
   passkeyLogin.disabled = $('login-submit').disabled = true;
-  $('login-message').textContent = '';
+  setLoginMessage('');
   try {
     const {token,user,expires} = await exchangePasskey(false,{});
     setSession(token,user,expires);
     await openAgenda(user);
-  } catch (error) { $('login-message').textContent = passkeyMessage(error); }
-  finally { passkeyLogin.disabled = $('login-submit').disabled = passkeyLogin.disabled = false; }
+  } catch (error) { setLoginMessage(passkeyMessage(error)); }
+  finally { passkeyLogin.disabled = $('login-submit').disabled = false; }
 };
 
 async function showPasskeys() {
   const keys = await jsonApi('/api/passkeys');
   const list = $('passkey-list');
   list.replaceChildren();
-  for (const {id,created,last_used} of keys) {
+  for (const {id,name,created,last_used} of keys) {
     const row = document.createElement('li');
     const when = seconds => new Date(seconds*1000).toLocaleDateString('it-IT');
     const label = document.createElement('span');
@@ -102,7 +112,11 @@ async function showPasskeys() {
       } catch (error) { passkeyStatus.textContent = error.message; }
       finally { remove.disabled = false; }
     };
-    row.append(label,remove);
+    const details = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = name;
+    details.append(title,label);
+    row.append(details,remove);
     list.append(row);
   }
 }
@@ -124,15 +138,21 @@ $('passkey-form').onsubmit = async event => {
   input.value = '';
   passkeyStatus.textContent = '';
   try {
-    await exchangePasskey(true,{password});
+    await exchangePasskey(true,{password,name:event.currentTarget.elements.name.value.trim()});
+    $('passkey-form').reset();
     await showPasskeys();
     passkeyStatus.textContent = 'Passkey attivata.';
   } catch (error) { passkeyStatus.textContent = passkeyMessage(error); }
   finally { button.disabled = false; }
 };
 
+function setLoginMessage(message,kind='error') {
+  const box = $('login-message');
+  box.dataset.kind = kind;
+  box.textContent = message;
+}
 function renderLogin() {
-  passkeyLogin.hidden = mode!=='login' || !passkeysSupported;
+  $('passkey-divider').hidden = passkeyLogin.hidden = mode!=='login' || !passkeysSupported;
   $('login-title').textContent = {login:'Accedi all’agenda',setup:'Configura amministratore',activate:resetCode?'Reimposta password':'Attiva il tuo account'}[mode];
   $('login-submit').textContent = mode==='login' ? 'Accedi' : 'Imposta password';
   $('login-email').hidden = mode==='activate';
@@ -151,6 +171,8 @@ async function openAgenda(user) {
   $('protected-app').hidden = false;
   $('admin-menu').hidden = user.role!=='admin';
   $('manage-passkeys').hidden = !passkeysSupported;
+  $('account-name').textContent = user.email.split('@')[0];
+  accountMenu.querySelector('summary').setAttribute('aria-label','Menu account di '+user.email);
   await import('./agenda.js');
 }
 
@@ -158,13 +180,13 @@ form.onsubmit = async event => {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(form));
   if (mode==='activate' && data.password!==data.confirmation) {
-    $('login-message').textContent = 'Le password non coincidono.';
+    setLoginMessage('Le password non coincidono.');
     form.elements.confirmation.focus();
     return;
   }
   delete data.confirmation;
   $('login-submit').disabled = passkeyLogin.disabled = true;
-  $('login-message').textContent = '';
+  setLoginMessage('');
   try {
     if (mode==='login') {
       const result = await jsonApi('/api/login',data);
@@ -178,11 +200,11 @@ form.onsubmit = async event => {
       mode = 'login';
       $('setup-toggle').hidden = true;
       renderLogin();
-      $('login-message').textContent = resetCode ? 'Password aggiornata. Accedi con la nuova password.' : 'Account confermato. Accedi con la tua email e password.';
+      setLoginMessage(resetCode ? 'Password aggiornata. Accedi con la nuova password.' : 'Account confermato. Accedi con la tua email e password.','success');
     }
   } catch(error) {
-    $('login-message').textContent = error.message;
-  } finally { $('login-submit').disabled = false; }
+    setLoginMessage(error.message);
+  } finally { $('login-submit').disabled = passkeyLogin.disabled = false; }
 };
 
 $('setup-toggle').onclick = () => {
@@ -190,6 +212,34 @@ $('setup-toggle').onclick = () => {
   $('setup-toggle').textContent = mode==='setup' ? 'Torna al login' : 'Configura amministratore';
   renderLogin();
 };
+$('change-password').onclick = () => {
+  $('password-form').reset();
+  $('password-status').textContent = '';
+  $('password-dialog').showModal();
+};
+$('password-form').onsubmit = async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const status = $('password-status');
+  const {currentPassword,newPassword,confirmation} = Object.fromEntries(new FormData(form));
+  if (newPassword!==confirmation) {
+    status.textContent = 'Le nuove password non coincidono.';
+    form.elements.confirmation.focus();
+    return;
+  }
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  status.textContent = '';
+  try {
+    const {token,user,expires} = await jsonApi('/api/account/password',{currentPassword,newPassword});
+    setSession(token,user,expires);
+    form.reset();
+    $('password-dialog').close();
+    notice('Password aggiornata.');
+  } catch (error) { status.textContent = error.message; }
+  finally { button.disabled = false; }
+};
+
 $('logout').onclick = async () => {
   try { await jsonApi('/api/logout',{}); }
   catch (error) { if (error.status!==401) { notice(error.message); return; } }
