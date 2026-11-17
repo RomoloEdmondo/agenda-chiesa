@@ -19,7 +19,120 @@ const code = resetCode || linkParams.get('invito');
 let mode = code ? 'activate' : 'login';
 if (code) history.replaceState(null,'',location.pathname+location.search);
 
+const passkeyLogin = $('passkey-login');
+const passkeyDialog = $('passkey-dialog');
+const passkeyStatus = $('passkey-status');
+const passkeysSupported = Boolean(window.PublicKeyCredential && navigator.credentials);
+
+function credentialOptions(options,registration) {
+  const decode = value => Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')),character=>character.charCodeAt(0));
+  const list = values => values?.map(item=>({...item,id:decode(item.id)}));
+  const publicKey = {...options,challenge:decode(options.challenge)};
+  if (registration) {
+    publicKey.user={...options.user,id:decode(options.user.id)};
+    publicKey.excludeCredentials=list(options.excludeCredentials);
+  } else {
+    publicKey.allowCredentials=list(options.allowCredentials);
+  }
+  return publicKey;
+}
+
+function credentialJSON(credential,registration) {
+  const encode = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const {response} = credential;
+  return {
+    id:credential.id,rawId:encode(credential.rawId),type:credential.type,
+    authenticatorAttachment:credential.authenticatorAttachment,
+    clientExtensionResults:credential.getClientExtensionResults(),
+    response:{
+      clientDataJSON:encode(response.clientDataJSON),
+      ...(registration ? {
+        attestationObject:encode(response.attestationObject),transports:response.getTransports?.()
+      } : {
+        authenticatorData:encode(response.authenticatorData),signature:encode(response.signature),
+        userHandle:response.userHandle ? encode(response.userHandle) : undefined
+      })
+    }
+  };
+}
+
+async function exchangePasskey(registration,request) {
+  const path = '/api/passkeys/'+(registration?'register':'login');
+  const {id,options} = await jsonApi(path+'/options',request);
+  const data = {publicKey:credentialOptions(options,registration)};
+  const credential = await (registration ? navigator.credentials.create(data) : navigator.credentials.get(data));
+  if (!credential) throw new Error('Operazione annullata.');
+  return jsonApi(path+'/verify',{id,response:credentialJSON(credential,registration)});
+}
+
+const passkeyMessage = error => error.name==='NotAllowedError'
+  ? 'Operazione annullata o passkey non disponibile su questo dispositivo.' : error.message;
+
+passkeyLogin.onclick = async () => {
+  passkeyLogin.disabled = $('login-submit').disabled = true;
+  $('login-message').textContent = '';
+  try {
+    const {token,user,expires} = await exchangePasskey(false,{});
+    setSession(token,user,expires);
+    await openAgenda(user);
+  } catch (error) { $('login-message').textContent = passkeyMessage(error); }
+  finally { passkeyLogin.disabled = $('login-submit').disabled = passkeyLogin.disabled = false; }
+};
+
+async function showPasskeys() {
+  const keys = await jsonApi('/api/passkeys');
+  const list = $('passkey-list');
+  list.replaceChildren();
+  for (const {id,created,last_used} of keys) {
+    const row = document.createElement('li');
+    const when = seconds => new Date(seconds*1000).toLocaleDateString('it-IT');
+    const label = document.createElement('span');
+    label.textContent = 'Creata il '+when(created)+(last_used ? ' · Ultimo accesso '+when(last_used) : '');
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'plain';
+    remove.textContent = 'Rimuovi';
+    remove.onclick = async () => {
+      if (!confirm('Rimuovere questa passkey dall’Agenda?')) return;
+      remove.disabled = true;
+      try {
+        await jsonApi('/api/passkeys/revoke',{id});
+        await showPasskeys();
+        passkeyStatus.textContent = 'Passkey rimossa.';
+      } catch (error) { passkeyStatus.textContent = error.message; }
+      finally { remove.disabled = false; }
+    };
+    row.append(label,remove);
+    list.append(row);
+  }
+}
+
+$('manage-passkeys').onclick = async () => {
+  $('passkey-list').replaceChildren();
+  passkeyStatus.textContent = '';
+  $('passkey-form').reset();
+  passkeyDialog.showModal();
+  try { await showPasskeys(); }
+  catch (error) { passkeyStatus.textContent = error.message; }
+};
+$('passkey-form').onsubmit = async event => {
+  event.preventDefault();
+  const input = event.currentTarget.elements.password;
+  const button = $('create-passkey');
+  button.disabled = true;
+  const password = input.value;
+  input.value = '';
+  passkeyStatus.textContent = '';
+  try {
+    await exchangePasskey(true,{password});
+    await showPasskeys();
+    passkeyStatus.textContent = 'Passkey attivata.';
+  } catch (error) { passkeyStatus.textContent = passkeyMessage(error); }
+  finally { button.disabled = false; }
+};
+
 function renderLogin() {
+  passkeyLogin.hidden = mode!=='login' || !passkeysSupported;
   $('login-title').textContent = {login:'Accedi all’agenda',setup:'Configura amministratore',activate:resetCode?'Reimposta password':'Attiva il tuo account'}[mode];
   $('login-submit').textContent = mode==='login' ? 'Accedi' : 'Imposta password';
   $('login-email').hidden = mode==='activate';
@@ -37,6 +150,7 @@ async function openAgenda(user) {
   $('login-shell').hidden = true;
   $('protected-app').hidden = false;
   $('admin-menu').hidden = user.role!=='admin';
+  $('manage-passkeys').hidden = !passkeysSupported;
   await import('./agenda.js');
 }
 
@@ -49,12 +163,12 @@ form.onsubmit = async event => {
     return;
   }
   delete data.confirmation;
-  $('login-submit').disabled = true;
+  $('login-submit').disabled = passkeyLogin.disabled = true;
   $('login-message').textContent = '';
   try {
     if (mode==='login') {
       const result = await jsonApi('/api/login',data);
-      setSession(result.token,result.user);
+      setSession(result.token,result.user,result.expires);
       form.reset();
       await openAgenda(result.user);
     } else {
@@ -292,7 +406,7 @@ renderLogin();
 if (currentToken() && mode==='login') {
   try {
     const user = await jsonApi('/api/me');
-    setSession(currentToken(),user);
+    setSession(currentToken(),user,user.expires);
     await openAgenda(user);
   } catch(error) {
     if (error.status===401) setSession(null);

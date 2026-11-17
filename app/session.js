@@ -1,14 +1,57 @@
 import {API_BASE} from './config.js';
 
-let token = sessionStorage.getItem('ruchheim.session');
+const storageKey = 'ruchheim.session';
+let token;
+let expires;
 let role;
+let expiryTimer;
 
-export function setSession(value,user) {
+try {
+  const stored = JSON.parse(localStorage.getItem(storageKey));
+  if (stored?.expires > Date.now()/1000) {
+    token = stored.token;
+    expires = stored.expires;
+  } else {
+    localStorage.removeItem(storageKey);
+  }
+} catch {}
+token ||= sessionStorage.getItem(storageKey);
+
+function checkExpiry() {
+  if (token && expires && expires<=Date.now()/1000) {
+    setSession(null);
+    location.reload();
+  }
+}
+
+export function setSession(value,user,until) {
   token = value;
   role = user?.role;
-  if (value) sessionStorage.setItem('ruchheim.session',value);
-  else sessionStorage.removeItem('ruchheim.session');
+  expires = until;
+  clearTimeout(expiryTimer);
+  try {
+    if (value && until) {
+      localStorage.setItem(storageKey,JSON.stringify({token:value,expires:until}));
+      sessionStorage.removeItem(storageKey);
+    } else if (!value) {
+      localStorage.removeItem(storageKey);
+      sessionStorage.removeItem(storageKey);
+    }
+  } catch {
+    if (value) sessionStorage.setItem(storageKey,value);
+  }
+  if (value && until) expiryTimer = setTimeout(checkExpiry,Math.max(0,until*1000-Date.now()));
 }
+
+document.addEventListener('visibilitychange',()=>{
+  if (!document.hidden) checkExpiry();
+});
+window.addEventListener('storage',event=>{
+  if (event.key!==storageKey || event.newValue===event.oldValue) return;
+  sessionStorage.removeItem(storageKey);
+  location.reload();
+});
+
 export const currentToken = () => token;
 export const isAdmin = () => role==='admin';
 export const mayEdit = () => ['admin','editor'].includes(role);
