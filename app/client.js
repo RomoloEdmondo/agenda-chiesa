@@ -183,8 +183,14 @@ async function sharePdf(title,fileName,events,{preview=false,single=false}={}) {
 
 function renderTeam(list) {
   $('team').innerHTML = '<div class="panel-head"><div><h2>Appuntamenti in programma</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
-    '<div class="team-actions"><button class="primary action-with-icon" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi</button><button class="plain" id="copy-link">Copia link</button><button class="plain" id="print">Stampa / PDF</button></div></div>'+
+    '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <span aria-hidden="true">⌄</span></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team">Condividi PDF</button><button type="button" class="plain" id="copy-link">Copia link</button><button type="button" class="plain" id="print">Stampa / PDF</button></div></details></div></div>'+
     (list.slice((listPage-1)*pageSize,listPage*pageSize).map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
+  const sharing = $('team').querySelector('.team-sharing');
+  sharing.addEventListener('click',event=>{
+    if (!event.target.closest('button')) return;
+    sharing.open = false;
+    sharing.querySelector('summary').focus();
+  });
   const teamLink = () => {
     const link = new URL(location.pathname,location.origin);
     for (const id of ['type-filter','period-filter','from','to']) {
@@ -258,12 +264,21 @@ function fillTypes(selected=$('type-filter').value) {
   filter.value = names.includes(selected) ? selected : '';
 }
 
+function catalogColorPicker(name) {
+  const selected = typeColor(name);
+  return '<details class="catalog-color" data-color-type="'+escape(name)+'">'+
+    '<summary aria-label="Colore di '+escape(name)+': '+palette[selected]+'">'+
+    '<span class="color-swatch" data-color="'+selected+'" aria-hidden="true"></span><span aria-hidden="true">⌄</span></summary>'+
+    '<div class="catalog-palette" role="group" aria-label="Scegli colore">'+
+    Object.entries(palette).map(([color,label])=>'<button type="button" class="icon-button" data-pick-color="'+color+
+      '" aria-label="'+label+'" aria-pressed="'+(selected===color)+'" title="'+label+
+      '"><span class="color-swatch" data-color="'+color+'" aria-hidden="true"></span></button>').join('')+'</div></details>';
+}
+
 function renderCatalog() {
   const names = catalogNames(catalogKind);
   $('catalog-list').innerHTML = names.length ? names.map(name=>'<li class="account-row"><span>'+escape(name)+
-    '</span><div class="catalog-actions">'+(catalogKind==='type'?
-      '<span class="color-swatch" data-color="'+typeColor(name)+'" aria-hidden="true"></span>'+
-      '<select data-color-type="'+escape(name)+'" aria-label="Colore di '+escape(name)+'">'+colorOptions(typeColor(name))+'</select>':'')+
+    '</span><div class="catalog-actions">'+(catalogKind==='type'?catalogColorPicker(name):'')+
     '<button type="button" class="icon-button delete-icon" data-remove="'+escape(name)+
     '" aria-label="Rimuovi '+escape(name)+'" title="Rimuovi '+escape(name)+'"></button></div></li>').join('')
     : '<li class="muted">Nessuna voce presente.</li>';
@@ -283,24 +298,30 @@ function catalogBusy(busy) {
   $('catalog-list').querySelectorAll('button,select').forEach(control=>control.disabled=busy);
 }
 
-$('catalog-list').onchange = async event => {
-  const select = event.target.closest('select[data-color-type]');
-  if (!select || $('catalog-save').disabled) return;
-  const name = select.dataset.colorType;
-  catalogBusy(true);
-  try {
-    updateCatalog(await jsonApi('/api/catalog',{kind:'type',action:'color',firstName:name,color:select.value}));
-    $('catalog-message').textContent = 'Colore salvato.';
-  } catch (error) {
-    select.value = typeColor(name);
-    $('catalog-message').textContent = error.message;
-  } finally {
-    catalogBusy(false);
-    [...$('catalog-list').querySelectorAll('select')].find(item=>item.dataset.colorType===name)?.focus();
-  }
-};
-
 $('catalog-list').onclick = async event => {
+  const swatch = event.target.closest('[data-pick-color]');
+  if (swatch && !$('catalog-save').disabled) {
+    const picker = swatch.closest('[data-color-type]');
+    const name = picker.dataset.colorType;
+    const color = swatch.dataset.pickColor;
+    if (color===typeColor(name)) {
+      picker.open = false;
+      picker.querySelector('summary').focus();
+      return;
+    }
+    catalogBusy(true);
+    try {
+      updateCatalog(await jsonApi('/api/catalog',{kind:'type',action:'color',firstName:name,color}));
+      $('catalog-message').textContent = 'Colore salvato.';
+      [...$('catalog-list').querySelectorAll('[data-color-type]')]
+        .find(item=>item.dataset.colorType===name)?.querySelector('summary').focus({preventScroll:true});
+    } catch (error) {
+      $('catalog-message').textContent = error.message;
+    } finally {
+      catalogBusy(false);
+    }
+    return;
+  }
   const button = event.target.closest('button[data-remove]');
   if (!button || $('catalog-save').disabled) return;
   const name = button.dataset.remove;
@@ -853,6 +874,8 @@ $('edit-event').onclick = () => {
 };
 $('event-form').onsubmit = save;
 document.addEventListener('click',event=>{
+  const teamSharing = $('team').querySelector('.team-sharing[open]');
+  if (teamSharing && !teamSharing.contains(event.target)) teamSharing.open = false;
   const pageButton = event.target.closest('button[data-list-page]');
   if (pageButton) {
     listPage = Number(pageButton.dataset.listPage);
