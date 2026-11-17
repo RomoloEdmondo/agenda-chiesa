@@ -80,7 +80,9 @@ function row(event, team=false) {
   const day = event.date ? Number(event.date.slice(8)) : '–';
   const label = event.date ? format(event.date,{month:'short'}) : 'Data';
   const notes = [team ? dateLabel(event) : "",event.time,team ? event.place : "",event.speaker].filter(Boolean).join(' · ');
-  const extra = team ? '<small>'+escape([event.responsible,event.status].filter(Boolean).join(' · '))+'</small>' : '';
+  const extra = team
+    ? '<small>'+escape([event.responsible,event.status].filter(Boolean).join(' · '))+'</small>'
+    : (event.responsible ? '<small>Conduzione: '+escape(event.responsible)+'</small>' : '');
   return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
     '<span class="row-copy"><span class="row-type" data-color="'+typeColor(event.type)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
 }
@@ -585,7 +587,8 @@ function renderEditor(editing) {
     }
     if (key==='place') {
       display = place===churchPlace || place.trim().toLowerCase()==='christliche gemeinde ruchheim'
-        ? '<strong>Christliche Gemeinde Ruchheim</strong> · <a href="'+churchMap+'" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>'
+        ? '<a class="preview-place-link" href="'+churchMap+'" target="_blank" rel="noopener noreferrer" aria-label="Christliche Gemeinde Ruchheim, '+churchAddress+'">'+
+          '<strong>Christliche Gemeinde Ruchheim</strong><span class="preview-place-address"> · '+churchAddress+'</span></a>'
         : escape(place);
     }
     return '<div class="event-fact" data-field="'+key+'"><span class="event-field-label">'+(fieldIcons[key] || '')+label+

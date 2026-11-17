@@ -806,3 +806,15 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
   }
   #account-menu .admin-menu-items button,#admin-menu .admin-menu-items button{min-height:42px}
 }
+
+@media screen and (max-width:760px), screen and (max-width:1100px) and (hover:none) and (pointer:coarse){
+  #editor:not(:has(#delete-event[hidden])) #editor-label,
+  #editor.event-preview #editor-label{
+    position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+  }
+  #editor.event-preview [data-field="place"]{gap:2px}
+  #editor.event-preview [data-field="place"] .event-fact-value{font-size:.78rem;line-height:1.25}
+  #editor.event-preview .preview-place-address{display:none}
+  #account-menu .account-avatar{width:36px;height:29px}
+  #account-menu .account-avatar .action-icon{width:19px;height:16px}
+}
