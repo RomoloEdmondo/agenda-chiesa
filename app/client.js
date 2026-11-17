@@ -405,7 +405,7 @@ const fields = [
   ['title','Titolo','text'],['type','Tipo evento','suggestions'],['date','Data','date'],
   ['end','Data fine','date'],['time','Orario','time'],['place','Luogo','text'],
   ['responsible','Guida/Conduzione','text'],['speaker','Relatore','suggestions'],
-  ['status','Stato preparazione','select'],['description','Descrizione','textarea'],['materials','Materiali e link','textarea']
+  ['status','Stato preparazione','select'],['description','Descrizione','textarea']
 ];
 
 const churchAddress = 'Oggersheimer Str. 2, 67071 Ludwigshafen';
@@ -450,7 +450,8 @@ function setupAttachments(readOnly) {
     section.querySelectorAll('button,input').forEach(control=>{ control.disabled = value; });
   }
 
-  async function refresh() {
+  const fileDetails = section.closest('details');
+  async function refresh(openWhenPopulated=false) {
     const files = await jsonApi(path());
     if (!connected()) return;
     list.innerHTML = files.map(file=>
@@ -460,6 +461,7 @@ function setupAttachments(readOnly) {
       '" aria-label="Rimuovi '+escape(file.name)+'"></button>')+'</li>').join('');
     status.textContent = files.length ? '' : 'Nessun allegato.';
     loaded = true;
+    if (openWhenPopulated && files.length) fileDetails.open = true;
   }
 
   async function run(action) {
@@ -471,9 +473,11 @@ function setupAttachments(readOnly) {
     finally { setBusy(false); }
   }
 
-  section.closest('details').addEventListener('toggle',event=>{
+  fileDetails.addEventListener('toggle',event=>{
     if (event.currentTarget.open && !loaded && !isNewEvent && connected()) run(refresh);
   });
+
+  if (!isNewEvent) run(()=>refresh(true));
 
   if (input) input.onchange = () => {
     const file = input.files[0];
@@ -572,12 +576,9 @@ function renderEditor(editing) {
 
   function previewField(key,label) {
     const value = escape(active[key]);
-    if (key==='description' || key==='materials') {
-      const description = key==='description';
-      const content = value ? '<p class="event-text">'+value+'</p>' : '';
-      return '<details class="'+(description?'event-description':'event-materials wide')+
-        '"'+(value?' open':'')+'><summary>'+label+'</summary>'+
-        (description ? content || '<p class="event-text muted">Nessuna descrizione.</p>' : content+attachments)+'</details>';
+    if (key==='description') {
+      return '<details class="event-description"'+(value?' open':'')+'><summary>Descrizione</summary>'+
+        '<p class="event-text">'+(value || 'Nessuna descrizione.')+'</p></details>';
     }
     if (key==='end' && !value) return '';
     let display = value;
@@ -619,10 +620,6 @@ function renderEditor(editing) {
       return '<details class="event-description"'+(active.description?.trim()?' open':'')+'><summary>Descrizione</summary>'+
         '<textarea name="description" aria-label="Descrizione" rows="3" maxlength="5000">'+value+'</textarea></details>';
     }
-    if (key==='materials') {
-      return '<details class="event-materials wide"><summary>Materiali e link'+(active.materials?' · presenti':'')+
-        '</summary><textarea name="materials" aria-label="Materiali e link" rows="3" maxlength="5000">'+value+'</textarea>'+attachments+'</details>';
-    }
     if (kind==='suggestions') {
       const names = catalogNames(key);
       return '<div class="event-choice"><label for="event-'+key+'">'+label+'</label>'+
@@ -647,7 +644,8 @@ function renderEditor(editing) {
     '<div class="event-options wide">'+field('end')+field('place')+'</div>'+
     '</div></section><section class="editor-card editor-people-card"><h3 class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/></svg>Persone</h3><div class="editor-people">'+
     ['responsible','speaker'].map(field).join('')+'</div></section></div>'+
-    '<div class="editor-notes">'+['description','materials'].map(field).join('')+'</div>'+
+    '<div class="editor-notes">'+field('description')+
+    '<details class="event-materials wide"><summary>File</summary>'+attachments+'</details></div>'+
     '<section class="editor-card tasks"><div class="checklist-heading"><h3>Checklist</h3>'+
     '<span id="checklist-summary"></span></div><div id="task-list"></div>'+
     (readOnly ? '' : '<button type="button" class="plain" id="add-task">＋ Aggiungi attività</button>')+'</section>';
@@ -957,6 +955,7 @@ async function save(event) {
   if (!canSave || $('save').hidden || $('save').disabled) return;
   const data = Object.fromEntries(new FormData(event.target));
   data.place = data.place.trim() || churchPlace;
+  data.materials = active.materials || '';
   data.tasks = [...$('task-list').children].map(item=>({
     label:item.querySelector('input[type=text]').value.trim(),
     done:item.querySelector('input[type=checkbox]').checked
