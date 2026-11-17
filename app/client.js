@@ -82,7 +82,7 @@ function row(event, team=false) {
   const notes = [team ? dateLabel(event) : "",event.time,team ? event.place : "",event.speaker].filter(Boolean).join(' · ');
   const extra = team
     ? '<small>'+escape([event.responsible,event.status].filter(Boolean).join(' · '))+'</small>'
-    : (event.responsible ? '<small>Conduzione: '+escape(event.responsible)+'</small>' : '');
+    : '';
   return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
     '<span class="row-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
 }
