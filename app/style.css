@@ -626,8 +626,18 @@
     padding-block:2px;
   }
 
+  #editor .editor-overview .fields select[name="status"],
+  #editor .editor-overview .editor-people .choice-control{height:28px;min-height:28px}
+  #editor .editor-overview .fields select[name="status"]{padding-block:2px}
+  #editor .editor-overview .editor-people .choice-toggle{height:26px}
+  #editor .editor-overview .editor-people .choice-control input{min-height:0;padding-block:2px}
+
+  #editor .editor-card.tasks{padding-block:6px}
+  #editor .checklist-heading{margin-bottom:4px}
+  #editor .task{margin-block:2px;padding-block:0}
   #editor .task input[type="text"]{min-height:0;padding-block:2px}
   #editor .task .delete-icon{height:26px}
+  #editor #add-task{margin-top:2px;padding-block:3px}
 }
 
 .team-sharing,.catalog-color{position:relative}
