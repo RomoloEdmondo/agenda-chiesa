@@ -861,11 +861,9 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
   background:var(--status-bg);color:var(--status-ink);border-color:var(--status-border);font-weight:700;
 }
 
-#editor.event-preview #editor-type{max-width:36%}
-#editor.event-preview #editor-type .event-fact{display:flex;align-items:center;gap:6px}
-#editor.event-preview #editor-type .event-field-label{flex:none;white-space:nowrap}
-#editor.event-preview #editor-type .event-fact-value{min-width:0}
-@media(max-width:460px){
-  #editor.event-preview #editor-type{max-width:42%}
-  #editor.event-preview #editor-type .event-fact{gap:4px;font-size:.68rem}
+@media screen and (min-width:761px) and (hover:hover), screen and (min-width:1101px){
+  #editor.event-preview #editor-type{max-width:36%}
+  #editor.event-preview #editor-type .event-fact{display:flex;align-items:center;gap:6px}
+  #editor.event-preview #editor-type .event-field-label{flex:none;white-space:nowrap}
+  #editor.event-preview #editor-type .event-fact-value{min-width:0}
 }
