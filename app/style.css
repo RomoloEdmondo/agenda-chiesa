@@ -829,3 +829,19 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
 .series-fields label,.series-fields input,.series-fields select{min-width:0}
 #series-message:empty{display:none}
 @media(max-width:420px){#series-dialog .account-content{padding-inline:12px}.series-fields input,.series-fields select{font-size:16px}}
+
+#edit-event{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;
+  min-height:36px;padding:6px 10px;border:1px solid #bdd5e4;border-radius:8px;
+  background:var(--paper);color:var(--green);font-weight:750;
+}
+#edit-event:hover{background:var(--soft);border-color:#86aec6}
+#edit-event .action-icon{width:16px;height:16px}
+#editor.event-preview #editor-type{flex:0 1 auto;max-width:26%;margin-right:4px}
+@media(max-width:460px){
+  #editor.event-preview .dialog-head{gap:5px}
+  #editor.event-preview #editor-type{max-width:23%;margin-right:0}
+  #editor.event-preview #editor-type .row-type{max-width:100%;overflow-wrap:anywhere}
+  #edit-event{width:36px;padding:0}
+  #edit-event span{display:none}
+}
