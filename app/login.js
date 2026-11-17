@@ -3,6 +3,16 @@ import {currentToken,setSession,jsonApi} from './session.js';
 
 const $ = id => document.getElementById(id);
 const form = $('login-form');
+const adminMenu = $('admin-menu');
+document.addEventListener('click',event=>{
+  if (!adminMenu.contains(event.target) || event.target.closest('.admin-menu-items button')) adminMenu.open = false;
+});
+adminMenu.addEventListener('keydown',event=>{
+  if (event.key==='Escape' && adminMenu.open) {
+    adminMenu.open = false;
+    adminMenu.querySelector('summary').focus();
+  }
+});
 const linkParams = new URLSearchParams(location.hash.slice(1));
 const resetCode = linkParams.get('reset');
 const code = resetCode || linkParams.get('invito');
@@ -26,7 +36,7 @@ function renderLogin() {
 async function openAgenda(user) {
   $('login-shell').hidden = true;
   $('protected-app').hidden = false;
-  $('manage-users').hidden = user.role!=='admin';
+  $('admin-menu').hidden = user.role!=='admin';
   await import('./agenda.js');
 }
 
@@ -229,6 +239,8 @@ $('show-invite').onclick=()=>{
   invite.elements.email.focus();
 };
 $('manage-users').onclick=async()=>{
+  if ($('admin-menu').hidden) return;
+  $('admin-menu').open = false;
   showUsers();
   $('account-list').replaceChildren();
   $('user-count').textContent='';

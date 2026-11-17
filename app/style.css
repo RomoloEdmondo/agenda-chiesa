@@ -691,3 +691,27 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
 @media(max-width:460px){
   #editor .event-schedule > [data-field="status"]{grid-column:1/-1}
 }
+
+.top{position:relative;z-index:3}
+.brand-logo{filter:brightness(1.06);mix-blend-mode:multiply}
+#admin-menu{position:relative}
+#admin-menu summary{cursor:pointer;list-style:none;padding:8px}
+#admin-menu summary::-webkit-details-marker{display:none}
+#admin-menu[open] summary{background:var(--soft)}
+.admin-menu-items{
+  position:absolute;top:calc(100% + 5px);right:0;
+  width:min(240px,calc(100vw - 24px));padding:5px;
+}
+.admin-menu-items button,.catalog-menu-items button,
+.event-sharing-options button,.team-sharing-options button{
+  display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+}
+.admin-menu-items .action-icon,.catalog-menu-items .action-icon,
+.event-sharing-options .action-icon,.team-sharing-options .action-icon{
+  width:16px;height:16px;flex:none;
+}
+#editor #delete-event{margin-right:0}
+@media(max-width:620px){
+  #editor .dialog-footer #event-sharing summary{min-height:36px;padding-inline:5px}
+  .admin-menu-items{right:-16px}
+}

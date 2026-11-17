@@ -183,7 +183,7 @@ async function sharePdf(title,fileName,events,{preview=false,single=false}={}) {
 
 function renderTeam(list) {
   $('team').innerHTML = '<div class="panel-head"><div><h2>Appuntamenti in programma</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
-    '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <span aria-hidden="true">⌄</span></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team">Condividi PDF</button><button type="button" class="plain" id="copy-link">Copia link</button><button type="button" class="plain" id="print">Stampa / PDF</button></div></details></div></div>'+
+    '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <span aria-hidden="true">⌄</span></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10l-7-7Zm0 0v7h7M8 14h8m-8 3h5"/></svg>Condividi PDF</button><button type="button" class="plain" id="copy-link"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2"/></svg>Copia link</button><button type="button" class="plain" id="print"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-3"/><path d="M7 14h10v7H7z"/></svg>Stampa / PDF</button></div></details></div></div>'+
     (list.slice((listPage-1)*pageSize,listPage*pageSize).map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
   const sharing = $('team').querySelector('.team-sharing');
   sharing.addEventListener('click',event=>{
@@ -278,9 +278,10 @@ function catalogColorPicker(name) {
 function renderCatalog() {
   const names = catalogNames(catalogKind);
   $('catalog-list').innerHTML = names.length ? names.map(name=>'<li class="account-row"><span>'+escape(name)+
-    '</span><div class="catalog-actions">'+(catalogKind==='type'?catalogColorPicker(name):'')+
-    '<button type="button" class="icon-button delete-icon" data-remove="'+escape(name)+
-    '" aria-label="Rimuovi '+escape(name)+'" title="Rimuovi '+escape(name)+'"></button></div></li>').join('')
+    '</span><div class="catalog-actions">'+(catalogKind==='type' ? (isAdmin() ? catalogColorPicker(name) :
+      '<span class="color-swatch" data-color="'+typeColor(name)+'" aria-label="'+palette[typeColor(name)]+'"></span>') : '')+
+    (isAdmin() ? '<button type="button" class="icon-button delete-icon" data-remove="'+escape(name)+
+    '" aria-label="Rimuovi '+escape(name)+'" title="Rimuovi '+escape(name)+'"></button>' : '')+'</div></li>').join('')
     : '<li class="muted">Nessuna voce presente.</li>';
 }
 
@@ -299,6 +300,7 @@ function catalogBusy(busy) {
 }
 
 $('catalog-list').onclick = async event => {
+  if (!isAdmin()) return;
   const swatch = event.target.closest('[data-pick-color]');
   if (swatch && !$('catalog-save').disabled) {
     const picker = swatch.closest('[data-color-type]');
@@ -340,6 +342,7 @@ $('catalog-list').onclick = async event => {
 
 function openCatalog(kind) {
   catalogKind = kind;
+  $('catalog-add').hidden = !isAdmin();
   const isSpeaker = kind==='speaker';
   $('catalog-menu').open = false;
   $('catalog-title').textContent = isSpeaker ? 'Relatori' : 'Tipi di evento';
@@ -361,6 +364,7 @@ document.querySelectorAll('[data-catalog]').forEach(button=>{
   button.onclick = () => openCatalog(button.dataset.catalog);
 });
 $('catalog-add').onclick = () => {
+  if (!isAdmin()) return;
   $('catalog-form').hidden = false;
   $('catalog-add').setAttribute('aria-expanded','true');
   $('catalog-form').elements.firstName.focus();
@@ -370,6 +374,7 @@ $('catalog-dialog').addEventListener('cancel',event=>{
 });
 $('catalog-form').onsubmit = async event => {
   event.preventDefault();
+  if (!isAdmin()) return;
   if ($('catalog-save').disabled) return;
   const form = event.currentTarget;
   const data = {kind:catalogKind,...Object.fromEntries(new FormData(form))};
@@ -850,7 +855,7 @@ async function loadActivity() {
 $('activity-more').onclick = loadActivity;
 $('open-activity').onclick = async () => {
   if (!isAdmin()) return;
-  $('catalog-menu').open = false;
+  $('admin-menu').open = false;
   activityCursor = null;
   $('activity-list').replaceChildren();
   $('activity-more').hidden = true;
@@ -860,7 +865,7 @@ $('open-activity').onclick = async () => {
 
 $('open-mail-history').onclick = async () => {
   if (!isAdmin()) return;
-  $('catalog-menu').open = false;
+  $('admin-menu').open = false;
   $('mail-history').replaceChildren();
   $('mail-history-message').textContent = 'Caricamento…';
   $('mail-history-dialog').showModal();
@@ -1074,7 +1079,7 @@ async function load() {
     render();
     try {
       catalog = await jsonApi('/api/catalog');
-      $('catalog-menu').hidden = !isAdmin();
+      $('catalog-menu').hidden = false;
       fillTypes(new URLSearchParams(location.search).get('type-filter') || $('type-filter').value);
       render();
     } catch (error) {
