@@ -669,3 +669,14 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
   .team-sharing summary{padding-inline:7px;font-size:.8rem}
   #catalog-dialog{width:min(536px,calc(100% - 24px))}
 }
+
+#event-attachments{margin-top:8px}
+#event-attachments ul{list-style:none;margin:0;padding:0}
+#event-attachments li{display:flex;align-items:center;justify-content:space-between;gap:5px;border-bottom:1px solid var(--line)}
+#event-attachments .attachment-name{min-width:0;text-align:left;overflow-wrap:anywhere}
+#event-attachments small{white-space:nowrap;color:var(--muted)}
+#event-attachments [role="status"]:empty,.attachment-preview:empty{display:none}
+.attachment-preview{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.attachment-preview img,.attachment-preview pre{flex-basis:100%;max-width:100%;max-height:45vh}
+.attachment-preview img{object-fit:contain}
+.attachment-preview pre{overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}

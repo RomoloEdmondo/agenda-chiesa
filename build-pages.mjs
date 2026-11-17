@@ -11,6 +11,6 @@ writeFileSync('public/agenda.js',agenda.replace('./agenda-pdf.js','./agenda-pdf.
 writeFileSync('public/login.js',readFileSync('app/login.js','utf8').replace('./agenda.js','./agenda.js?v='+version));
 writeFileSync('public/config.js','export const API_BASE = '+JSON.stringify(api)+';\n');
 
-const csp = "default-src 'self'; script-src 'self'; img-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; connect-src "+(api || "'self'");
+const csp = "default-src 'self'; script-src 'self'; img-src 'self' blob:; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; connect-src "+(api || "'self'");
 const html = readFileSync('app/index.html','utf8').replace('./login.js','./login.js?v='+version).replace('./style.css','./style.css?v='+version).replace('<meta charset="utf-8">','<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="'+csp+'">');
 writeFileSync('public/index.html',html);

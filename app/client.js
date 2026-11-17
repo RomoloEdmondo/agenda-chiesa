@@ -414,9 +414,138 @@ function openEditor(event, editing=view!=='team', date='') {
   $('editor').showModal();
 }
 
+let releaseAttachmentPreview = () => {};
+$('editor').addEventListener('close',()=>releaseAttachmentPreview());
+
+function setupAttachments(readOnly) {
+  const section = $('event-attachments');
+  const eventId = active.id;
+  const list = section.querySelector('ul');
+  const status = section.querySelector('[role="status"]');
+  const preview = section.querySelector('.attachment-preview');
+  const input = section.querySelector('input');
+  const connected = () => section.isConnected && $('editor').open;
+  const path = (params={}) => '/api/attachments?'+new URLSearchParams({event:eventId,...params});
+  const formatSize = size => size>=1024*1024
+    ? (size/(1024*1024)).toLocaleString('it-IT',{maximumFractionDigits:1})+' MB'
+    : Math.max(1,Math.round(size/1024))+' KB';
+  let loaded = false;
+  let busy = false;
+  let objectUrl;
+  releaseAttachmentPreview = () => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = undefined;
+    preview.replaceChildren();
+  };
+
+  function setBusy(value) {
+    busy = value;
+    section.querySelectorAll('button,input').forEach(control=>{ control.disabled = value; });
+  }
+
+  async function refresh() {
+    const files = await jsonApi(path());
+    if (!connected()) return;
+    list.innerHTML = files.map(file=>
+      '<li><button class="plain attachment-name" type="button" data-preview-file="'+escape(file.id)+'">'+
+      escape(file.name)+' <small>'+formatSize(file.size)+'</small></button>'+
+      (readOnly?'':'<button type="button" class="icon-button delete-icon" data-remove-file="'+escape(file.id)+
+      '" aria-label="Rimuovi '+escape(file.name)+'"></button>')+'</li>').join('');
+    status.textContent = files.length ? '' : 'Nessun allegato.';
+    loaded = true;
+  }
+
+  async function run(action) {
+    if (busy) return;
+    setBusy(true);
+    status.textContent = 'Caricamento…';
+    try { await action(); }
+    catch (error) { status.textContent = error.message; }
+    finally { setBusy(false); }
+  }
+
+  section.closest('details').addEventListener('toggle',event=>{
+    if (event.currentTarget.open && !loaded && !isNewEvent && connected()) run(refresh);
+  });
+
+  if (input) input.onchange = () => {
+    const file = input.files[0];
+    input.value = '';
+    if (!file) return;
+    if (file.size > 5*1024*1024) {
+      status.textContent = 'Il file supera 5 MB.';
+      return;
+    }
+    run(async ()=>{
+      const response = await apiFetch(path({name:file.name}),{
+        method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file
+      });
+      if (!response.ok) throw new Error((await response.json()).error || 'Caricamento non riuscito.');
+      if (connected()) await refresh();
+    });
+  };
+
+  list.onclick = event=>{
+    const button = event.target.closest('button');
+    if (!button || busy) return;
+    if (button.dataset.removeFile) {
+      if (!confirm('Rimuovere questo allegato?')) return;
+      run(async ()=>{
+        const response = await apiFetch(path({id:button.dataset.removeFile}),{
+          method:'DELETE',headers:{'Content-Type':'application/json'}
+        });
+        if (!response.ok) throw new Error((await response.json()).error || 'Rimozione non riuscita.');
+        if (!connected()) return;
+        releaseAttachmentPreview();
+        await refresh();
+      });
+      return;
+    }
+    if (!button.dataset.previewFile) return;
+    run(async ()=>{
+      const response = await apiFetch(path({id:button.dataset.previewFile}));
+      if (!response.ok) throw new Error((await response.json()).error || 'Allegato non disponibile.');
+      const blob = await response.blob();
+      if (!connected()) return;
+      releaseAttachmentPreview();
+      objectUrl = URL.createObjectURL(blob);
+      const download = document.createElement('a');
+      download.href = objectUrl;
+      download.download = button.firstChild.textContent.trim();
+      download.textContent = 'Scarica file';
+      if (blob.type.startsWith('image/')) {
+        const image = document.createElement('img');
+        image.alt = download.download;
+        image.src = objectUrl;
+        preview.append(image);
+      } else if (blob.type.startsWith('text/plain')) {
+        const text = await blob.slice(0,32768).text();
+        if (!connected()) return;
+        const pre = document.createElement('pre');
+        pre.textContent = blob.size>32768 ? text+'\n…' : text;
+        preview.append(pre);
+      } else {
+        const open = document.createElement('a');
+        open.href = objectUrl;
+        open.target = '_blank';
+        open.rel = 'noopener noreferrer';
+        open.textContent = 'Apri PDF';
+        preview.append(open);
+      }
+      preview.append(download);
+      status.textContent = '';
+    });
+  };
+}
+
 function renderEditor(editing) {
+  releaseAttachmentPreview();
   const readOnly = !editing || !canSave;
   const place = active.place || churchPlace;
+  const attachments = '<section id="event-attachments" aria-label="Allegati">'+
+    (isNewEvent ? '<p class="muted">Salva l’evento per aggiungere allegati.</p>'
+      : readOnly ? '' : '<label>Carica allegato · max 5 MB<input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.txt,.csv,.md"></label>')+
+    '<p class="muted" role="status"></p><ul></ul><div class="attachment-preview"></div></section>';
   $('edit-event').hidden = !readOnly || !canSave;
   $('editor-label').textContent = active.title ? 'Scheda evento' : 'Nuovo evento';
   $('edit-title').textContent = active.title || 'Nuovo evento';
@@ -436,7 +565,7 @@ function renderEditor(editing) {
     $('details').innerHTML = '<dl class="readonly">'+fields.filter(([key])=>!['title','type'].includes(key) &&
       (view!=='team' || !['end','materials','description'].includes(key) || active[key]?.trim())).map(([key,label])=>'<div><dt>'+escape(label)+'</dt><dd>'+
       escape(key==='place' ? place : (['date','end'].includes(key)&&active[key]?format(active[key],{day:'numeric',month:'long',year:'numeric'}):active[key]) || 'Da definire')+'</dd></div>').join('')+
-      '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul>';
+      '</dl><h3>Checklist</h3><ul>'+active.tasks.map(t=>'<li>'+ (t.done?'✓ ':'○ ')+escape(t.label)+'</li>').join('')+'</ul><details class="event-materials"><summary>File e documenti</summary>'+attachments+'</details>';
   } else {
     function renderField([key,label,kind]) {
       const value = escape(active[key]);
@@ -464,7 +593,7 @@ function renderEditor(editing) {
       }
       if (key==='materials') {
         return '<details class="event-materials wide"><summary>Materiali e link'+(active.materials?' · presenti':'')+
-          '</summary><textarea name="materials" aria-label="Materiali e link" rows="3" maxlength="5000">'+value+'</textarea></details>';
+          '</summary><textarea name="materials" aria-label="Materiali e link" rows="3" maxlength="5000">'+value+'</textarea>'+attachments+'</details>';
       }
       if (kind==='suggestions') {
         const names = catalogNames(key);
@@ -552,6 +681,7 @@ function renderEditor(editing) {
       if ($('task-list').children.length<80) addTask({label:'',done:false}).focus();
     };
   }
+  setupAttachments(readOnly);
 }
 
 function updateChecklistCount() {
@@ -641,6 +771,8 @@ async function loadAdminMailHistory() {
 
 const activityLabels = {
   'event.create':'Evento creato',
+  'attachment.add':'Allegato caricato',
+  'attachment.delete':'Allegato rimosso',
   'event.edit':'Evento modificato',
   'event.delete':'Evento eliminato',
   'speaker.add':'Relatore aggiunto',
