@@ -76,12 +76,17 @@ function matches(event) {
   return end >= period+'-01-01' && event.date <= period+'-12-31';
 }
 
+const statusBadge = status => status
+  ? '<span class="status-badge" data-status="'+escape(status)+'">'+escape(status)+'</span>' : '';
+
 function row(event, team=false) {
   const day = event.date ? Number(event.date.slice(8)) : '–';
   const label = event.date ? format(event.date,{month:'short'}) : 'Data';
-  const notes = [team ? dateLabel(event) : "",event.time,team ? event.place : "",event.speaker].filter(Boolean).join(' · ');
+  const notes = (team ? [dateLabel(event),event.time] : [event.time,event.speaker]).filter(Boolean).join(' · ');
   const extra = team
-    ? '<small>'+escape([event.responsible,event.status].filter(Boolean).join(' · '))+'</small>'
+    ? (event.speaker ? '<small>Relatore: '+escape(event.speaker)+'</small>' : '')+
+      (event.responsible ? '<small>Conduzione: '+escape(event.responsible)+'</small>' : '')+
+      statusBadge(event.status)
     : '';
   return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
     '<span class="row-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
@@ -584,7 +589,7 @@ function renderEditor(editing) {
         '<p class="event-text">'+(value || 'Nessuna descrizione.')+'</p></details>';
     }
     if (key==='end' && !value) return '';
-    let display = value;
+    let display = key==='status' ? statusBadge(active.status) : value;
     if (key==='type') display = '<span class="row-type" data-color="'+eventColor(active)+'">'+value+'</span>';
     if (['date','end'].includes(key) && value) {
       display = escape(format(active[key],{day:'2-digit',month:'2-digit',year:'numeric'}));
@@ -634,7 +639,7 @@ function renderEditor(editing) {
         '<div class="choice-options" id="'+key+'-choices" hidden>'+
         names.map(name=>'<button type="button" data-value="'+escape(name)+'">'+escape(name)+'</button>').join('')+'</div></div>';
     }
-    const field = kind==='select' ? '<select name="'+key+'">'+statuses.map(v=>option(v,v,v===active[key])).join('')+'</select>'
+    const field = kind==='select' ? '<select name="'+key+'" class="status-select" data-status="'+value+'">'+statuses.map(v=>option(v,v,v===active[key])).join('')+'</select>'
       : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
       : '<input name="'+key+'" type="'+kind+'" value="'+value+'" '+(key==='title'?'required ':'')+(kind==='date'?'min="0001-01-01" max="9999-12-31"':'maxlength="5000"')+'>';
     return '<label class="'+(kind==='textarea'?'wide':'')+'">'+label+field+'</label>';
@@ -669,7 +674,8 @@ function renderEditor(editing) {
       placeInput.hidden = false;
       placeInput.focus();
     };
-    const {date,end} = $('event-form').elements;
+    const {date,end,status} = $('event-form').elements;
+    status.addEventListener('change',()=>{ status.dataset.status = status.value; });
     date.onchange = () => { end.min = date.value || '0001-01-01'; };
     end.oninvalid = () => { end.closest('details').open = true; };
     $('event-form').querySelectorAll('.event-choice').forEach(choice=>{

@@ -845,3 +845,18 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
   #edit-event{width:36px;padding:0}
   #edit-event span{display:none}
 }
+
+:is(.status-badge,.status-select){--status-bg:#eef1f4;--status-ink:#465566;--status-border:#d8dfe6}
+:is(.status-badge,.status-select)[data-status="Annullato"]{--status-bg:#fce8ec;--status-ink:#8f2440;--status-border:#edbac6}
+:is(.status-badge,.status-select)[data-status="Pronto"]{--status-bg:#e3f4e9;--status-ink:#185838;--status-border:#b8dbc8}
+:is(.status-badge,.status-select)[data-status="Da verificare"]{--status-bg:#e5f1fa;--status-ink:#1b557b;--status-border:#bbd7ec}
+:is(.status-badge,.status-select)[data-status="Da preparare"]{--status-bg:#fff1d5;--status-ink:#744b10;--status-border:#ead3a3}
+:is(.status-badge,.status-select)[data-status="In corso"]{--status-bg:#eee8fa;--status-ink:#59427f;--status-border:#d9caef}
+.status-badge{
+  display:inline-flex;align-items:center;justify-self:start;width:fit-content;max-width:100%;
+  border:1px solid var(--status-border);border-radius:999px;padding:2px 7px;
+  background:var(--status-bg);color:var(--status-ink);font-size:.73rem;font-weight:750;line-height:1.2;
+}
+#editor .fields select.status-select{
+  background:var(--status-bg);color:var(--status-ink);border-color:var(--status-border);font-weight:700;
+}
