@@ -818,3 +818,14 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
   #account-menu .account-avatar{width:36px;height:29px}
   #account-menu .account-avatar .action-icon{width:19px;height:16px}
 }
+
+#series-dialog{width:min(580px,calc(100% - 24px));max-height:calc(100dvh - 24px)}
+#series-dialog .account-content{padding-top:12px}
+#series-list{list-style:none;margin:12px 0;padding:0}
+#series-list li{display:grid;gap:4px;padding:8px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+#series-list small{color:var(--muted)}
+.series-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px}
+.series-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.series-fields label,.series-fields input,.series-fields select{min-width:0}
+#series-message:empty{display:none}
+@media(max-width:420px){#series-dialog .account-content{padding-inline:12px}.series-fields input,.series-fields select{font-size:16px}}

@@ -54,7 +54,7 @@ const dateLabel = event => event.date
 const sorted = list => [...list].sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999') ||
   a.time.localeCompare(b.time) || a.title.localeCompare(b.title,'it'));
 const empty = message => '<p class="empty">'+escape(message)+'</p>';
-const eventButton = (event, label, className='plain') => '<button type="button" class="'+className+'" data-color="'+typeColor(event.type)+'" data-event="'+escape(event.id)+'">'+escape(label)+'</button>';
+const eventButton = (event, label, className='plain') => '<button type="button" class="'+className+'" data-color="'+eventColor(event)+'" data-event="'+escape(event.id)+'">'+escape(label)+'</button>';
 
 function matches(event) {
   const type = $('type-filter').value;
@@ -84,7 +84,7 @@ function row(event, team=false) {
     ? '<small>'+escape([event.responsible,event.status].filter(Boolean).join(' · '))+'</small>'
     : (event.responsible ? '<small>Conduzione: '+escape(event.responsible)+'</small>' : '');
   return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
-    '<span class="row-copy"><span class="row-type" data-color="'+typeColor(event.type)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
+    '<span class="row-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
 }
 
 function renderCalendar(list) {
@@ -105,13 +105,15 @@ function renderCalendar(list) {
     if (day<1 || day>count) return '<div class="day outside" aria-hidden="true"></div>';
     const date = month+'-'+String(day).padStart(2,'0');
     const chips = monthEvents.filter(e=>e.date<=date && (e.end||e.date)>=date).map(e=>
-      '<button type="button" class="chip" data-color="'+typeColor(e.type)+'" data-event="'+escape(e.id)+'" title="'+escape(e.title)+'" aria-label="'+
+      '<button type="button" class="chip" data-color="'+eventColor(e)+'" data-event="'+escape(e.id)+'" title="'+escape(e.title)+'" aria-label="'+
       escape(e.title+' · '+format(date,{day:'numeric',month:'long'}))+'">'+escape(e.title)+'</button>').join('');
     const add = canSave ? '<button type="button" class="day-add" data-new-date="'+date+
       '" aria-label="'+escape('Nuovo evento, '+format(date,{day:'numeric',month:'long',year:'numeric'}))+'"></button>' : '';
     return '<div class="day'+(date===today?' today':'')+'">'+add+'<span class="day-number"'+(date===today?' aria-current="date"':'')+'>'+day+'</span>'+chips+'</div>';
   }).join('');
-  $('month-events').innerHTML = monthEvents.length ? monthEvents.map(e=>eventButton(e,Number(e.date.slice(8))+' '+format(e.date,{month:'short'})+' · '+e.title)).join('') : '<span>Nessun appuntamento nel mese selezionato.</span>';
+  const listedEvents = monthEvents.filter(event=>!event.seriesId);
+  $('month-events').hidden = monthEvents.length>0 && !listedEvents.length;
+  $('month-events').innerHTML = listedEvents.length ? listedEvents.map(e=>eventButton(e,Number(e.date.slice(8))+' '+format(e.date,{month:'short'})+' · '+e.title)).join('') : '<span>Nessun appuntamento nel mese selezionato.</span>';
   const upcoming = list.filter(e=>e.date && (e.end||e.date)>=today && !closed(e));
   const pending = list.filter(e=>!e.date && !closed(e));
   $('upcoming').innerHTML = (upcoming.slice(0,showAll?upcoming.length:5).map(e=>row(e)).join('') || empty('Nessun prossimo appuntamento con questi filtri.')) + pending.map(e=>row(e)).join('');
@@ -238,6 +240,7 @@ const palette = {blue:'Blu',green:'Verde',yellow:'Giallo',pink:'Rosa',orange:'Ar
 const defaultColors = {agape:'yellow',bambini:'pink',concerto:'pink',convegno:'purple',
   culto:'green',donne:'blue',seminario:'purple',uomini:'blue',cinema:'green'};
 
+const eventColor = event => event.color || typeColor(event.type);
 function typeColor(name) {
   const key = nameKey(name);
   const color = catalog.find(entry=>entry.kind==='type' && nameKey(catalogName(entry))===key)?.color;
@@ -582,7 +585,7 @@ function renderEditor(editing) {
     }
     if (key==='end' && !value) return '';
     let display = value;
-    if (key==='type') display = '<span class="row-type" data-color="'+typeColor(active.type)+'">'+value+'</span>';
+    if (key==='type') display = '<span class="row-type" data-color="'+eventColor(active)+'">'+value+'</span>';
     if (['date','end'].includes(key) && value) {
       display = escape(format(active[key],{day:'2-digit',month:'2-digit',year:'numeric'}));
     }
@@ -642,6 +645,8 @@ function renderEditor(editing) {
     '<section class="editor-card editor-program-card"><h3>Programma</h3><div class="fields">'+
     '<div class="event-schedule wide">'+['date','time','status'].map(field).join('')+'</div>'+
     '<div class="event-options wide">'+field('end')+field('place')+'</div>'+
+    (!readOnly && active.seriesId ? '<label class="wide">Colore dell’occorrenza<select name="color">'+
+      option('','Colore del tipo',!active.color)+colorOptions(active.color)+'</select></label>' : '')+
     '</div></section><section class="editor-card editor-people-card"><h3 class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/></svg>Persone</h3><div class="editor-people">'+
     ['responsible','speaker'].map(field).join('')+'</div></section></div>'+
     '<div class="editor-notes">'+field('description')+
@@ -672,7 +677,10 @@ function renderEditor(editing) {
       const toggle = choice.querySelector('.choice-toggle');
       const list = choice.querySelector('.choice-options');
       if (input.name==='type') {
-        const paint = () => { choice.dataset.color = typeColor(input.value); };
+        const paint = () => {
+          choice.dataset.color = $('event-form').elements.color?.value || typeColor(input.value);
+        };
+        $('event-form').elements.color?.addEventListener('change',paint);
         input.addEventListener('input',paint);
         paint();
       }
@@ -806,6 +814,9 @@ async function loadAdminMailHistory() {
 const activityLabels = {
   'event.create':'Evento creato',
   'attachment.add':'Allegato caricato',
+  'series.create':'Serie creata',
+  'series.edit':'Serie modificata',
+  'series.delete':'Serie eliminata',
   'attachment.delete':'Allegato rimosso',
   'event.edit':'Evento modificato',
   'event.delete':'Evento eliminato',
@@ -854,6 +865,109 @@ async function loadActivity() {
 }
 
 $('activity-more').onclick = loadActivity;
+
+const weekdays = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const seriesForm = $('series-form');
+const seriesMessage = $('series-message');
+let currentSeries;
+let seriesBusy = false;
+
+function editSeries(series) {
+  currentSeries = series;
+  seriesForm.reset();
+  $('series-form-title').textContent = series ? 'Modifica serie' : 'Nuova serie settimanale';
+  $('series-weekday').innerHTML = weekdays.map((day,i)=>option(String(i),day)).join('');
+  $('series-color').innerHTML = option('','Colore del tipo')+colorOptions(series?.color);
+  $('series-types').innerHTML = catalogNames('type').map(name=>option(name)).join('');
+  if (series) {
+    for (const field of seriesForm.elements) {
+      if (field.name && Object.hasOwn(series,field.name)) field.value = series[field.name];
+    }
+  } else {
+    seriesForm.elements.starts.value = today;
+    seriesForm.elements.weekday.value = String(new Date(today+'T12:00:00Z').getUTCDay());
+  }
+  seriesForm.hidden = false;
+  seriesForm.elements.title.focus();
+}
+
+async function refreshSeries() {
+  const series = await jsonApi('/api/series');
+  const list = $('series-list');
+  list.replaceChildren();
+  for (const rule of series) {
+    const row = document.createElement('li');
+    const title = document.createElement('strong');
+    title.textContent = rule.title;
+    const meta = document.createElement('small');
+    meta.textContent = weekdays[rule.weekday]+(rule.time ? ' · '+rule.time : '')+' · '+format(rule.starts,{dateStyle:'short'})+' – '+format(rule.until,{dateStyle:'short'});
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'plain';
+    edit.textContent = 'Modifica';
+    edit.onclick = () => { if (!seriesBusy) editSeries(rule); };
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'danger-outline';
+    remove.textContent = 'Elimina';
+    remove.onclick = () => {
+      if (seriesBusy || !confirm('Eliminare la serie «'+rule.title+'» e tutte le sue occorrenze, comprese le modifiche e gli allegati?')) return;
+      saveSeries({id:rule.id,revision:rule.revision,action:'delete'},'Serie eliminata.');
+    };
+    const actions = document.createElement('div');
+    actions.className = 'series-actions';
+    actions.append(edit,remove);
+    row.append(title,meta,actions);
+    list.append(row);
+  }
+  if (!series.length) {
+    const empty = document.createElement('li');
+    empty.className = 'muted';
+    empty.textContent = 'Nessuna serie ricorrente.';
+    list.append(empty);
+  }
+}
+
+async function saveSeries(data,message) {
+  if (seriesBusy) return;
+  seriesBusy = true;
+  seriesForm.querySelector('[type="submit"]').disabled = true;
+  seriesMessage.textContent = '';
+  try {
+    await jsonApi('/api/series',data);
+    seriesForm.hidden = true;
+    await Promise.all([refreshSeries(),jsonApi('/api/events').then(items=>{
+      events = items;
+      fillTypes();
+      render();
+    })]);
+    seriesMessage.textContent = message;
+  } catch (error) { seriesMessage.textContent = error.message; }
+  finally {
+    seriesBusy = false;
+    seriesForm.querySelector('[type="submit"]').disabled = false;
+  }
+}
+
+$('open-series').onclick = async () => {
+  if (!isAdmin()) return;
+  $('admin-menu').open = false;
+  seriesForm.hidden = true;
+  $('series-list').replaceChildren();
+  seriesMessage.textContent = 'Caricamento…';
+  $('series-dialog').showModal();
+  try { await refreshSeries(); seriesMessage.textContent = ''; }
+  catch(error) { seriesMessage.textContent = error.message; }
+};
+$('new-series').onclick = () => { if (!seriesBusy) editSeries(); };
+$('cancel-series').onclick = () => { if (!seriesBusy) seriesForm.hidden = true; };
+seriesForm.onsubmit = event => {
+  event.preventDefault();
+  const data = Object.fromEntries(new FormData(seriesForm));
+  saveSeries({...data,weekday:Number(data.weekday),id:currentSeries?.id,
+    revision:currentSeries?.revision ?? 0,status:currentSeries?.status || 'Da preparare'},'Serie salvata.');
+};
+
 $('open-activity').onclick = async () => {
   if (!isAdmin()) return;
   $('admin-menu').open = false;
@@ -955,6 +1069,8 @@ async function save(event) {
   if (!canSave || $('save').hidden || $('save').disabled) return;
   const data = Object.fromEntries(new FormData(event.target));
   data.place = data.place.trim() || churchPlace;
+  if (active.seriesId && !active.place && data.place===churchPlace) data.place = '';
+  data.color = data.color ?? active.color ?? '';
   data.materials = active.materials || '';
   data.tasks = [...$('task-list').children].map(item=>({
     label:item.querySelector('input[type=text]').value.trim(),
