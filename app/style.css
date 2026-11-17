@@ -749,3 +749,60 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
 #passkey-list li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
 #passkey-list li div{display:grid;gap:3px;min-width:0;overflow-wrap:anywhere}
 #passkey-list li span{font-size:.8rem;color:var(--muted)}
+
+#account-menu summary{
+  min-height:42px;padding:4px 8px 4px 5px;gap:7px;
+  border:1px solid #d6e4ee;border-radius:999px;background:#f7fafc;
+}
+#account-menu[open] summary,#account-menu summary:hover{background:#edf5fa;border-color:#a6c4d8}
+.account-avatar{
+  display:grid;place-items:center;flex:none;width:31px;height:31px;border-radius:50%;
+  background:linear-gradient(145deg,#347da5,#174e73);color:#fff;
+}
+#account-menu .account-avatar .action-icon{width:17px;height:17px}
+#account-menu summary > .action-icon{width:12px;height:12px;color:#557385}
+.admin-menu-items,.catalog-menu-items{z-index:5}
+
+#notice.toast{
+  --toast-color:#17634b;
+  top:max(12px,env(safe-area-inset-top,0px));
+  right:max(12px,env(safe-area-inset-right,0px));
+  max-width:min(440px,calc(100vw - 24px));
+  gap:10px;padding:9px 8px 9px 10px;border:1px solid #c5ddd3;border-radius:15px;
+  background:rgba(248,255,252,.92);color:#19352e;
+  -webkit-backdrop-filter:blur(16px) saturate(130%);
+  backdrop-filter:blur(16px) saturate(130%);
+  box-shadow:0 10px 28px #132f292e;
+}
+#notice.toast[data-kind="error"]{
+  --toast-color:#972c43;border-color:#edccd3;background:rgba(255,247,249,.94);color:#541c28;
+}
+#toast-message{margin:0;min-width:0;overflow-wrap:anywhere;font-size:.86rem;font-weight:650}
+.toast-symbol{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:var(--toast-color);color:white}
+.toast-symbol svg{width:16px;height:16px}
+.toast-error,[data-kind="error"] .toast-ok{display:none}
+[data-kind="error"] .toast-error{display:block}
+#notice #toast-close{flex:none;width:33px;height:33px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit}
+#notice #toast-close:hover{background:#172d3d12}
+@media(prefers-reduced-motion:no-preference){
+  #notice.toast:not([hidden]){animation:toast-appear .18s ease-out}
+  @keyframes toast-appear{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+}
+
+@media screen and (max-width:760px), screen and (max-width:1100px) and (hover:none) and (pointer:coarse){
+  .top-inner{position:relative;flex-wrap:nowrap;gap:7px;padding-block:8px}
+  .top-inner .brand{min-width:0;gap:6px}
+  .top-inner .brand-logo{width:36px;height:auto;flex:none}
+  .top-inner .account-actions{flex:none;flex-wrap:nowrap;align-items:center;margin-left:auto}
+  #account-menu,#admin-menu,.agenda-nav #catalog-menu{position:static}
+  #account-menu #account-name{display:none}
+  #account-menu summary{min-height:44px;padding:4px 6px 4px 4px;gap:3px}
+  #account-menu .account-avatar{width:33px;height:33px}
+  #account-menu .admin-menu-items,#admin-menu .admin-menu-items,
+  .agenda-nav #catalog-menu .catalog-menu-items{
+    left:max(12px,env(safe-area-inset-left,0px));
+    right:max(12px,env(safe-area-inset-right,0px));
+    width:auto;max-width:290px;margin-left:auto;min-width:0;
+  }
+  #account-menu .admin-menu-items button,#admin-menu .admin-menu-items button{min-height:42px}
+}

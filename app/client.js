@@ -165,7 +165,7 @@ async function sharePdf(title,fileName,events,{preview=false,single=false}={}) {
     if (ready) await ready;
     file = makeAgendaFile(title,fileName,events,single);
   } catch {
-    notice('Impossibile preparare il PDF. Riprova tra poco.');
+    notice('Impossibile preparare il PDF. Riprova tra poco.','error');
     return;
   }
   if (!preview && navigator.canShare?.({files:[file]}) && typeof navigator.share==='function') {
@@ -1092,7 +1092,7 @@ async function load() {
       fillTypes(new URLSearchParams(location.search).get('type-filter') || $('type-filter').value);
       render();
     } catch (error) {
-      if (error.status!==404) notice('Impossibile caricare gli elenchi di relatori e tipi di evento.');
+      if (error.status!==404) notice('Impossibile caricare gli elenchi di relatori e tipi di evento.','error');
     }
     canSave = mayEdit();
     $('new-event').disabled = !canSave;
@@ -1101,10 +1101,10 @@ async function load() {
     if (view==='team' && eventId) {
       const shared = events.find(event=>event.id===eventId);
       if (shared) openEditor(shared,false);
-      else notice('Evento non disponibile.');
+      else notice('Evento non disponibile.','error');
     }
   } catch {
-    notice('Impossibile caricare il calendario. Riprova tra poco.');
+    notice('Impossibile caricare il calendario. Riprova tra poco.','error');
   }
 }
 load();
