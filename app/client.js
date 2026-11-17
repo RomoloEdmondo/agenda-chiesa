@@ -1034,8 +1034,17 @@ $('close-editor').onclick = $('cancel').onclick = () => { if (!$('save').disable
 $('editor').addEventListener('cancel',event=>{ if ($('save').disabled) event.preventDefault(); });
 $('edit-event').onclick = () => {
   if (!canSave) return;
+  const materials = $('event-attachments').closest('details');
+  const keepMaterialsOpen = materials.open;
   renderEditor(true);
-  $('event-form').elements.title.focus();
+  if (keepMaterialsOpen) {
+    const editableMaterials = $('event-attachments').closest('details');
+    editableMaterials.open = true;
+    editableMaterials.querySelector('summary').focus({preventScroll:true});
+    editableMaterials.scrollIntoView({block:'nearest'});
+  } else {
+    $('event-form').elements.title.focus();
+  }
 };
 $('event-form').onsubmit = save;
 document.addEventListener('click',event=>{
