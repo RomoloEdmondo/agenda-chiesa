@@ -614,3 +614,18 @@
 .list-pagination button{min-height:44px}
 .list-pagination button:disabled{opacity:.45}
 .list-pagination span{color:var(--muted);font-size:.85rem}
+
+@media screen and (max-width:620px){
+  #editor-type .choice-control{min-height:28px}
+  #editor-type .choice-control input{min-height:0;padding-block:3px}
+  #editor-type .choice-toggle{height:28px}
+
+  #editor .editor-overview .fields input:is([type="date"],[type="time"]){
+    height:28px;
+    min-height:28px;
+    padding-block:2px;
+  }
+
+  #editor .task input[type="text"]{min-height:0;padding-block:2px}
+  #editor .task .delete-icon{height:26px}
+}
