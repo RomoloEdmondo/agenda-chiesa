@@ -871,3 +871,9 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
 #editor.event-preview [data-field="place"] .event-fact-value,
 #editor #event-place-preview{font-weight:400}
 #editor #editor-type .row-type[data-color]{font-size:.8rem;letter-spacing:.045em;padding:5px 9px;line-height:1.2;border-radius:6px}
+
+#editor .editor-card.tasks{padding-block:8px}
+#editor .checklist-heading{margin-bottom:4px}
+#editor #add-task{margin-top:2px;padding:4px 6px}
+#editor .tasks:has(#task-list:empty) .checklist-heading{margin-bottom:0}
+#editor .tasks:has(#task-list:empty) #add-task{margin-top:0;padding-block:3px}
