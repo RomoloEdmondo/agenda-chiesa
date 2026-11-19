@@ -417,7 +417,10 @@ const fields = [
 ];
 
 const churchAddress = 'Oggersheimer Str. 2, 67071 Ludwigshafen';
-const churchPlace = 'Christliche Gemeinde Ruchheim · '+churchAddress;
+const churchPlace = 'CG-Ruchheim OggerscheimerStr. 2 67071 Ludwigshafen';
+const isChurchPlace = value => !value || [
+  churchPlace, 'Christliche Gemeinde Ruchheim', 'Christliche Gemeinde Ruchheim · '+churchAddress
+].some(name=>name.toLowerCase()===value.trim().toLowerCase());
 const churchMap = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(churchAddress);
 
 function openEditor(event, editing=!event, date='') {
@@ -560,7 +563,7 @@ function setupAttachments(readOnly) {
 function renderEditor(editing) {
   releaseAttachmentPreview();
   const readOnly = !editing || !canSave;
-  const place = active.place || churchPlace;
+  const place = isChurchPlace(active.place) ? churchPlace : active.place;
   const attachments = '<section id="event-attachments" aria-label="Allegati">'+
     (isNewEvent ? '<p class="muted">Salva l’evento per aggiungere allegati.</p>'
       : readOnly ? '' : '<label>Carica allegato · max 5 MB<input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.txt,.csv,.md"></label>')+
@@ -595,9 +598,8 @@ function renderEditor(editing) {
       display = escape(format(active[key],{day:'2-digit',month:'2-digit',year:'numeric'}));
     }
     if (key==='place') {
-      display = place===churchPlace || place.trim().toLowerCase()==='christliche gemeinde ruchheim'
-        ? '<a class="preview-place-link" href="'+churchMap+'" target="_blank" rel="noopener noreferrer" aria-label="Christliche Gemeinde Ruchheim, '+churchAddress+'">'+
-          '<strong>Christliche Gemeinde Ruchheim</strong><span class="preview-place-address"> · '+churchAddress+'</span></a>'
+      display = isChurchPlace(place)
+        ? '<a class="preview-place-link" href="'+churchMap+'" target="_blank" rel="noopener noreferrer" aria-label="'+escape(churchPlace)+'">'+escape(churchPlace)+'</a>'
         : escape(place);
     }
     return '<div class="event-fact" data-field="'+key+'"><span class="event-field-label">'+(fieldIcons[key] || '')+label+
@@ -617,10 +619,9 @@ function renderEditor(editing) {
         '<input type="date" name="end" aria-label="Data fine" min="'+(escape(active.date)||'0001-01-01')+'" max="9999-12-31" value="'+value+'"></label></details>';
     }
     if (key==='place') {
-      const isDefault = place===churchPlace || place.trim().toLowerCase()==='christliche gemeinde ruchheim';
+      const isDefault = isChurchPlace(place);
       return '<details class="event-place"'+(isDefault?'':' open')+'><summary>Luogo</summary><div class="event-place-row">'+
-        '<div id="event-place-preview">'+(isDefault ? '<strong>Christliche Gemeinde Ruchheim</strong> <span aria-hidden="true">·</span> <a href="'+churchMap+
-        '" target="_blank" rel="noopener noreferrer">'+churchAddress+'</a>' : escape(place))+'</div>'+
+        '<div id="event-place-preview">'+(isDefault ? '<a href="'+churchMap+'" target="_blank" rel="noopener noreferrer">'+escape(churchPlace)+'</a>' : escape(place))+'</div>'+
         '<input type="text" name="place" id="event-place-input" aria-label="Luogo" value="'+escape(place)+'" maxlength="5000" hidden>'+
         '<button type="button" id="edit-place" class="icon-button" aria-label="Modifica luogo" title="Modifica luogo">✎</button></div></details>';
     }
