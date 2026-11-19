@@ -1055,3 +1055,31 @@ input::placeholder,textarea::placeholder{color:#8795a5}
  .top-inner>.agenda-nav>#catalog-menu{display:flex;align-items:stretch}
  .top-inner>.agenda-nav>#catalog-menu>summary{height:36px;display:flex;align-items:center;justify-content:center}
 }
+
+#system-dialog{width:min(820px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:hidden}
+#system-dialog[open]{display:flex;flex-direction:column}
+#system-dialog .account-content{overflow:auto;min-height:0;overscroll-behavior:contain}
+.system-toolbar,.system-health{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.system-toolbar{margin-bottom:10px}
+#system-message:empty{display:none}
+#system-message{font-size:.85rem;padding:9px 0;color:#8b3545}
+.system-health small,.system-metric small,.system-storage small{color:var(--muted);font-size:.75rem}
+.system-state{display:inline-flex;border:1px solid #c5dfd2;color:#2c654a;background:#edf7f1;padding:4px 9px;border-radius:99px;font-size:.77rem;font-weight:700}
+.system-state[data-state=warning]{background:#fff6e6;border-color:#e8d6aa;color:#806025}
+.system-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}
+.system-metric{display:grid;align-content:start;gap:6px;padding:12px;background:#f5f8fb;border:1px solid var(--line);border-radius:10px;min-width:0}
+.system-metric h3{font-size:.75rem;color:var(--muted);font-weight:600}
+.system-metric strong{font-size:1.16rem;overflow-wrap:anywhere}
+.system-storage{display:grid;gap:5px;padding:0 2px 12px}
+.system-storage meter{width:100%;height:12px;accent-color:#527b9e}
+.system-section{border-top:1px solid var(--line);padding:14px 0 6px}
+.system-section>h3{font-size:.92rem;margin-bottom:10px}
+.system-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 20px;margin:0}
+.system-facts div{min-width:0}
+.system-facts dt{color:var(--muted);font-size:.73rem}
+.system-facts dd{margin:3px 0 0;font-size:.83rem;overflow-wrap:anywhere}
+.system-links{display:flex;flex-wrap:wrap;gap:7px}
+.system-links a{padding:6px 9px;border:1px solid var(--line);border-radius:7px;text-decoration:none;color:var(--green);font-size:.8rem}
+.system-section>p{font-size:.77rem;line-height:1.5;margin-top:10px}
+.system-issue{background:#fff6e6;color:#806025;border-radius:8px;padding:10px;font-size:.8rem}
+@media(max-width:600px){.system-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.system-facts{gap:10px}.system-metric{padding:10px}#system-dialog .account-content{padding:12px}}

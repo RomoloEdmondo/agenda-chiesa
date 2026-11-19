@@ -51,16 +51,19 @@ export function agendaPdf(title,events,{single=false}={}) {
   }
   const pageWidth=595,pageHeight=842,margin=36,contentWidth=523;
   const titleLines=lines(title,422,18,true);
+  const headerBottom=766-Math.max(0,titleLines.length-1)*21;
+  const contentTop=headerBottom-16;
   let stream='',y=0;
   function page() {
     if (stream) pages.push(stream);
-    stream='0.95 0.97 0.99 rg 0 766 595 76 re f\n'+
+    stream='1 1 1 rg 0 '+headerBottom+' 595 '+(pageHeight-headerBottom)+' re f\n'+
+      '0.85 0.89 0.94 RG 0.5 w 36 '+headerBottom+' m 559 '+headerBottom+' l S\n'+
       'q 48 0 0 '+Math.round(48*logoCanvas.height/logoCanvas.width)+' 511 782 cm /Logo Do Q\n'+
       text(margin,817,'AGENDA RUCHHEIM',8,true,'0.25 0.38 0.50')+
-      text(margin,790,titleLines[0] || 'Programma della comunità',18,true,'0.12 0.24 0.36')+
+      titleLines.map((part,index)=>text(margin,790-index*21,part,18,true,'0.12 0.24 0.36')).join('')+
       text(margin,22,'Christliche Gemeinde Ruchheim',8,false,'0.40 0.47 0.55')+
       text(542,22,String(pages.length+1),8,false,'0.40 0.47 0.55');
-    y=750;
+    y=contentTop;
   }
   function eventBlock(event) {
     let commands='',offset=0;
@@ -102,7 +105,7 @@ export function agendaPdf(title,events,{single=false}={}) {
   if(!events.length) stream+=text(margin,y,'Nessun appuntamento con i filtri selezionati.',10);
   for(const event of events) {
     const block=eventBlock(event);
-    const available=750-48;
+    const available=contentTop-48;
     const scale=Math.min(1,available/block.height);
     const height=block.height*scale;
     if(y-height<48) page();

@@ -1,3 +1,4 @@
+import {initSystemStatus} from './system-status.js';
 import {agendaPdf,pdfLogoReady} from './agenda-pdf.js';
 import {notice} from './toast.js';
 import {apiFetch, isAdmin, jsonApi, mayEdit} from './session.js';
@@ -192,6 +193,23 @@ async function sharePdf(title,fileName,events,{preview=false,single=false}={}) {
   setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 
+function filteredProgramTitle() {
+  const period=$('period-filter').value;
+  const type=$('type-filter').selectedOptions[0]?.textContent || '';
+  let scope='Tutti gli appuntamenti';
+  if(period==='current-month' || period==='next-month') {
+    scope=format((period==='current-month'?nowMonth:nextMonth)+'-01',{month:'long',year:'numeric'});
+  } else if(period==='custom') {
+    const from=$('from').value,to=$('to').value;
+    scope=[from?'dal '+format(from,{day:'numeric',month:'short',year:'numeric'}):'',
+      to?'al '+format(to,{day:'numeric',month:'short',year:'numeric'}):''].filter(Boolean).join(' ') || 'Intervallo personalizzato';
+  } else if(period==='future') scope='Dal '+format(today,{day:'numeric',month:'short',year:'numeric'});
+  else if(period==='past') scope='Appuntamenti passati';
+  else if(period==='undated') scope='Date da confermare';
+  return ['Programma',scope,$('type-filter').value?type:'',
+    $('recurring-filter').value==='without'?'Senza eventi ricorrenti':''].filter(Boolean).join(' · ');
+}
+
 function renderTeam(list) {
   $('team').innerHTML = '<div class="panel-head"><div><h2>Appuntamenti in programma</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
     '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <span aria-hidden="true">⌄</span></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10l-7-7Zm0 0v7h7M8 14h8m-8 3h5"/></svg>Condividi PDF</button><button type="button" class="plain" id="copy-link"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2"/></svg>Copia link</button><button type="button" class="plain" id="print"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-3"/><path d="M7 14h10v7H7z"/></svg>Stampa / PDF</button></div></details></div></div>'+
@@ -210,9 +228,9 @@ function renderTeam(list) {
     link.hash = 'team';
     return link.href;
   };
-  $('share-team').onclick = () => sharePdf('Programma per il team','programma-ruchheim.pdf',list);
+  $('share-team').onclick = () => sharePdf(filteredProgramTitle(),'programma-ruchheim.pdf',list);
   $('copy-link').onclick = () => copyAgendaLink(teamLink());
-  $('print').onclick = () => sharePdf('Programma per il team','programma-ruchheim.pdf',list,{preview:true});
+  $('print').onclick = () => sharePdf(filteredProgramTitle(),'programma-ruchheim.pdf',list,{preview:true});
 }
 
 function render() {
@@ -1410,3 +1428,5 @@ async function load() {
   }
 }
 load();
+
+initSystemStatus();
