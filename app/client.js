@@ -58,7 +58,7 @@ const eventButton = (event, label, className='plain') => '<button type="button" 
 
 function matches(event) {
   const recurrence = $('recurring-filter').value;
-  if (view==='team' && ((recurrence==='without' && event.seriesId) || (recurrence==='only' && !event.seriesId))) return false;
+  if ((recurrence==='without' && event.seriesId) || (recurrence==='only' && !event.seriesId)) return false;
   const type = $('type-filter').value;
   const period = $('period-filter').value;
   const from = $('from').value;
@@ -221,7 +221,11 @@ function render() {
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-current',b.dataset.view===view));
   for (const name of ['agenda','prep','team']) $(name).hidden = name!==view;
   $('new-event').hidden = view!=='agenda' || !mayEdit();
-  $('team-filter-presets').hidden = view!=='team';
+  $('team-filter-presets').hidden = false;
+  $('team-filter-presets').querySelector('.filter-presets').hidden = view!=='team';
+  const recurringVisible = $('recurring-filter').value!=='without';
+  $('recurring-toggle').setAttribute('aria-pressed',String(recurringVisible));
+  $('recurring-toggle').querySelector('.recurring-toggle-state').textContent = recurringVisible ? '✓' : '−';
   document.querySelectorAll('[data-period-preset]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.periodPreset===$('period-filter').value)));
   $('date-filters').hidden = $('period-filter').value!=='custom';
   $('reset').classList.toggle('filters-idle', !$('type-filter').value && !$('period-filter').value && !$('recurring-filter').value);
@@ -1266,6 +1270,11 @@ for (const id of ['type-filter','period-filter','from','to','recurring-filter'])
 $('reset').onclick = () => {
   listPage = 1;
   for (const id of ['type-filter','period-filter','from','to','recurring-filter']) $(id).value='';
+  render();
+};
+$('recurring-toggle').onclick = () => {
+  $('recurring-filter').value = $('recurring-filter').value==='without' ? '' : 'without';
+  listPage = 1;
   render();
 };
 document.querySelectorAll('[data-period-preset]').forEach(button=>{button.onclick=()=>{
