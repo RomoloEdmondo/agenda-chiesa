@@ -1011,3 +1011,39 @@ select,input:not([type=checkbox]),textarea{border-color:#d8e0e9;background-color
 @media(prefers-reduced-motion:no-preference){
  button,summary{transition:background-color .14s ease,color .14s ease,box-shadow .14s ease,border-color .14s ease}
 }
+
+/* Refined controls and lightweight popover menus. */
+input:not([type=checkbox]),textarea,select{
+ border-color:#d9e1eb;border-radius:8px;background-color:#fbfcfe;color:#293f55;
+ box-shadow:inset 0 1px 2px #203b5504,0 1px 2px #203b5503;
+}
+select{appearance:none;-webkit-appearance:none;padding-right:30px;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23738499' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m8 10 4 4 4-4'/%3E%3C/svg%3E");
+ background-repeat:no-repeat;background-position:right 9px center;background-size:16px;
+}
+input:not([type=checkbox]):hover,textarea:hover,select:hover{border-color:#b7c7d8;background-color:#fff}
+input:not([type=checkbox]):focus-visible,textarea:focus-visible,select:focus-visible{
+ outline:2px solid #4b79a133;outline-offset:1px;border-color:#7299bb;background-color:#fff;box-shadow:0 0 0 3px #608bb910;
+}
+input::placeholder,textarea::placeholder{color:#8795a5}
+.filters label,.calendar-period label{color:#6c7d90;font-weight:600}
+.filters select,.calendar-period select,.calendar-period input{font-family:inherit;font-weight:550}
+.admin-menu-items,.catalog-menu-items,.choice-options,.event-sharing-options,.team-sharing-options{
+ border-radius:11px;border-color:#e3e8ef;background:#fff;
+ box-shadow:0 12px 32px #263d5512,0 3px 8px #263d5508;
+}
+.admin-menu-items button,.catalog-menu-items button,.event-sharing-options button,.team-sharing-options button{
+ font-size:.85rem;font-weight:550;line-height:1.4;color:#40566d;border-radius:7px;
+}
+.admin-menu-items .action-icon,.catalog-menu-items .action-icon,.event-sharing-options .action-icon,.team-sharing-options .action-icon{color:#7a8fa4}
+.admin-menu-items button:hover,.catalog-menu-items button:hover,.event-sharing-options button:hover,.team-sharing-options button:hover{background:#f1f5f9;color:#254f75}
+.choice-options button{font-size:.88rem;font-weight:500;color:#40566d}
+#prev,#next{
+ border:1px solid #bfcede;border-radius:9px;color:#2b567c;font-weight:650;
+ background:linear-gradient(180deg,#fff,#eaf0f7);
+ box-shadow:0 2px 4px #24476312,inset 0 1px #ffffff; 
+}
+#prev:hover,#next:hover{background:#e2ecf6;border-color:#8aa8c4;box-shadow:0 2px 6px #24476320}
+#prev:active,#next:active{background:#d6e4f2;box-shadow:inset 0 1px 3px #24476315}
+#prev:disabled,#next:disabled{box-shadow:none}
+#days{touch-action:pan-y pinch-zoom}

@@ -1285,6 +1285,50 @@ document.querySelectorAll('[data-period-preset]').forEach(button=>{button.onclic
 $('today').onclick = () => navigateMonth(nowMonth);
 $('prev').onclick = () => moveMonth(-1);
 $('next').onclick = () => moveMonth(1);
+
+// Horizontal calendar gestures preserve vertical scrolling and ordinary event taps.
+function bindCalendarSwipe(calendar) {
+  let gesture = null;
+  let suppressClickUntil = 0;
+  calendar.addEventListener('touchstart', event => {
+    gesture = mobileNavigation.matches && event.touches.length === 1
+      ? {x:event.touches[0].clientX,y:event.touches[0].clientY,axis:null}
+      : null;
+  }, {passive:true});
+  calendar.addEventListener('touchmove', event => {
+    if (!gesture) return;
+    if (event.touches.length !== 1) { gesture = null; return; }
+    const dx = event.touches[0].clientX - gesture.x;
+    const dy = event.touches[0].clientY - gesture.y;
+    if (!gesture.axis && Math.max(Math.abs(dx),Math.abs(dy)) > 12)
+      gesture.axis = Math.abs(dx) > Math.abs(dy)*1.4 ? 'x' : 'y';
+    if (gesture.axis === 'x') {
+      suppressClickUntil = performance.now()+800;
+      if (event.cancelable) event.preventDefault();
+    }
+  }, {passive:false});
+  calendar.addEventListener('touchend', event => {
+    const current = gesture;
+    gesture = null;
+    if (!current || current.axis === 'y' || event.touches.length || !event.changedTouches.length) return;
+    const dx = event.changedTouches[0].clientX-current.x;
+    const dy = event.changedTouches[0].clientY-current.y;
+    const threshold = Math.max(48,Math.min(80,calendar.clientWidth*.16));
+    if (Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy)*1.6) return;
+    suppressClickUntil = performance.now()+800;
+    if (event.cancelable) event.preventDefault();
+    moveMonth(dx < 0 ? 1 : -1);
+  }, {passive:false});
+  calendar.addEventListener('touchcancel', () => { gesture = null; }, {passive:true});
+  calendar.addEventListener('click', event => {
+    if (performance.now() < suppressClickUntil) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+}
+bindCalendarSwipe($('days'));
+
 $('more').onclick = () => { showAll=!showAll; render(); };
 $('new-event').disabled = true;
 $('new-event').onclick = () => openEditor();
