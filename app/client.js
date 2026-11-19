@@ -57,6 +57,8 @@ const empty = message => '<p class="empty">'+escape(message)+'</p>';
 const eventButton = (event, label, className='plain') => '<button type="button" class="'+className+'" data-color="'+eventColor(event)+'" data-event="'+escape(event.id)+'">'+escape(label)+'</button>';
 
 function matches(event) {
+  const recurrence = $('recurring-filter').value;
+  if (view==='team' && ((recurrence==='without' && event.seriesId) || (recurrence==='only' && !event.seriesId))) return false;
   const type = $('type-filter').value;
   const period = $('period-filter').value;
   const from = $('from').value;
@@ -202,7 +204,7 @@ function renderTeam(list) {
   });
   const teamLink = () => {
     const link = new URL(location.pathname,location.origin);
-    for (const id of ['type-filter','period-filter','from','to']) {
+    for (const id of ['type-filter','period-filter','from','to','recurring-filter']) {
       if (id==='period-filter' || $(id).value) link.searchParams.set(id,$(id).value);
     }
     link.hash = 'team';
@@ -219,8 +221,10 @@ function render() {
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-current',b.dataset.view===view));
   for (const name of ['agenda','prep','team']) $(name).hidden = name!==view;
   $('new-event').hidden = view!=='agenda' || !mayEdit();
+  $('team-filter-presets').hidden = view!=='team';
+  document.querySelectorAll('[data-period-preset]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.periodPreset===$('period-filter').value)));
   $('date-filters').hidden = $('period-filter').value!=='custom';
-  $('reset').classList.toggle('filters-idle', !$('type-filter').value && !$('period-filter').value);
+  $('reset').classList.toggle('filters-idle', !$('type-filter').value && !$('period-filter').value && !$('recurring-filter').value);
   const titles = {
     agenda:['Agenda della comunità','Appuntamenti e preparazione del programma della comunità.'],
     prep:['Preparazione','Checklist e responsabilità per gli appuntamenti in programma.'],
@@ -855,26 +859,30 @@ async function loadLatestMail() {
   $('mail-latest').textContent = jobs.length ? 'Ultimo invio · '+mailSummary(jobs[0]) : '';
 }
 
+let mailHistoryPage=1;
+let mailHistoryRequest=0;
 async function loadAdminMailHistory() {
-  const {jobs} = await jsonApi('/api/mail?view=history');
-  $('mail-history-message').textContent = jobs.length ? '' : 'Nessun invio registrato.';
+  const request=++mailHistoryRequest;
+  const result=await jsonApi('/api/mail?view=history&'+historyParams('mail-history',mailHistoryPage));
+  if(request!==mailHistoryRequest) return;
+  const {jobs}=result;
+  $('mail-history-message').textContent=jobs.length?'':'Nessun invio con questi filtri.';
   $('mail-history').replaceChildren(...jobs.map(job=>{
-    const row = document.createElement('li');
-    row.textContent = mailSummary(job)+' · '+job.owner;
-    if (job.canCancel) {
-      const cancel = document.createElement('button');
-      cancel.type = 'button';
-      cancel.className = 'plain';
-      cancel.textContent = 'Annulla invio';
-      cancel.onclick = async () => {
-        cancel.disabled = true;
-        try { await jsonApi('/api/mail',{action:'cancel',id:job.id}); await loadAdminMailHistory(); }
-        catch (error) { $('mail-history-message').textContent = error.message; cancel.disabled=false; }
+    const row=document.createElement('li');
+    row.textContent=mailSummary(job)+' · '+job.owner;
+    if(job.canCancel){
+      const cancel=document.createElement('button');
+      cancel.type='button';cancel.className='plain';cancel.textContent='Annulla invio';
+      cancel.onclick=async()=>{
+        cancel.disabled=true;
+        try{await jsonApi('/api/mail',{action:'cancel',id:job.id});await loadAdminMailHistory();}
+        catch(error){$('mail-history-message').textContent=error.message;cancel.disabled=false;}
       };
       row.append(' ',cancel);
     }
     return row;
   }));
+  historyPager('mail-history',result,page=>{mailHistoryPage=page;return loadAdminMailHistory();});
 }
 
 const activityLabels = {
@@ -905,32 +913,75 @@ const activityLabels = {
 const activityTime = new Intl.DateTimeFormat('it-IT',{
   dateStyle:'medium',timeStyle:'short',timeZone:'Europe/Berlin'
 });
-let activityCursor = null;
+let activityPage=1;
+let activityRequest=0;
 
-async function loadActivity() {
-  const more = $('activity-more');
-  const message = $('activity-message');
-  more.disabled = true;
-  message.textContent = 'Caricamento…';
-  try {
-    const {entries,next} = await jsonApi('/api/activity'+(activityCursor === null ? '' : '?before='+activityCursor));
-    $('activity-list').insertAdjacentHTML('beforeend',entries.map(({action,target,actor,time})=>{
-      const date = new Date(time*1000);
-      return '<li><strong>'+escape(activityLabels[action] || action)+'</strong>'+
-        '<span>'+escape(target)+'</span><small>'+escape(actor)+' · <time datetime="'+
-        date.toISOString()+'">'+activityTime.format(date)+'</time></small></li>';
-    }).join(''));
-    activityCursor = next;
-    message.textContent = $('activity-list').childElementCount ? '' : 'Nessuna attività registrata.';
-    more.hidden = next === null;
-  } catch (error) {
-    message.textContent = error.message;
-  } finally {
-    more.disabled = false;
+function historyParams(prefix,page) {
+  const data=new FormData($(prefix+'-filters'));
+  const params=new URLSearchParams({page});
+  for(const [key,value] of data){
+    if(!value) continue;
+    if(key==='from'||key==='to'){
+      const date=new Date(value);
+      if(Number.isNaN(date.getTime())) throw new Error('Data non valida.');
+      params.set(key,Math.floor(date.getTime()/1000)+(key==='to'?59:0));
+    }else params.set(key,value);
+  }
+  if(params.has('from')&&params.has('to')&&Number(params.get('from'))>Number(params.get('to'))) throw new Error('La data iniziale deve precedere quella finale.');
+  return params;
+}
+
+function historyPager(prefix,{page,total,pageSize},change) {
+  const target=$(prefix+'-pages');
+  const pages=Math.max(1,Math.ceil(total/pageSize));
+  target.replaceChildren();
+  if(!total) return;
+  for(const [label,next] of [['‹ Indietro',page-1],['Avanti ›',page+1]]){
+    const button=document.createElement('button');
+    button.type='button';button.className='plain';button.textContent=label;
+    button.disabled=next<1||next>pages;
+    button.onclick=async()=>{
+      target.querySelectorAll('button').forEach(b=>b.disabled=true);
+      try{await change(next);}
+      catch(error){$(prefix+'-message').textContent=error.message;}
+    };
+    if(next>page){
+      const text=document.createElement('span');
+      text.textContent='Pagina '+page+' di '+pages+' · '+total+' risultati';
+      target.append(text);
+    }
+    target.append(button);
   }
 }
 
-$('activity-more').onclick = loadActivity;
+async function loadActivity() {
+  const request=++activityRequest;
+  const message=$('activity-message');
+  message.textContent='Caricamento…';
+  try {
+    const result=await jsonApi('/api/activity?'+historyParams('activity',activityPage));
+    if(request!==activityRequest) return;
+    $('activity-list').innerHTML=result.entries.map(({action,target,actor,time})=>{
+      const date=new Date(time*1000);
+      return '<li><strong>'+escape(activityLabels[action]||action)+'</strong><span>'+escape(target)+
+        '</span><small>'+escape(actor)+' · <time datetime="'+date.toISOString()+'">'+activityTime.format(date)+'</time></small></li>';
+    }).join('');
+    message.textContent=result.entries.length?'':'Nessuna attività con questi filtri.';
+    historyPager('activity',result,page=>{activityPage=page;return loadActivity();});
+  }catch(error){if(request===activityRequest) message.textContent=error.message;}
+}
+
+for(const prefix of ['activity','mail-history']){
+  const form=$(prefix+'-filters');
+  const values=prefix==='activity'?activityLabels:mailStates;
+  form.elements.type.innerHTML=option('','Tutti')+Object.entries(values).map(([value,label])=>option(value,label)).join('');
+  const reload=async()=>{
+    if(prefix==='activity'){activityPage=1;await loadActivity();}
+    else {mailHistoryPage=1;try{await loadAdminMailHistory();}catch(error){$('mail-history-message').textContent=error.message;}}
+  };
+  form.onsubmit=event=>{event.preventDefault();reload();};
+  form.onreset=()=>queueMicrotask(reload);
+}
 
 const weekdays = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
 const seriesForm = $('series-form');
@@ -1044,9 +1095,9 @@ seriesForm.onsubmit = event => {
 $('open-activity').onclick = async () => {
   if (!isAdmin()) return;
   $('admin-menu').open = false;
-  activityCursor = null;
+  activityPage = 1;
   $('activity-list').replaceChildren();
-  $('activity-more').hidden = true;
+  $('activity-pages').replaceChildren();
   $('activity-dialog').showModal();
   await loadActivity();
 };
@@ -1054,6 +1105,8 @@ $('open-activity').onclick = async () => {
 $('open-mail-history').onclick = async () => {
   if (!isAdmin()) return;
   $('admin-menu').open = false;
+  mailHistoryPage = 1;
+  $('mail-history-pages').replaceChildren();
   $('mail-history').replaceChildren();
   $('mail-history-message').textContent = 'Caricamento…';
   $('mail-history-dialog').showModal();
@@ -1178,7 +1231,7 @@ function selectView() {
   const requested = params.get('period-filter');
   period.value = [...period.options].some(option=>option.value===requested)
     ? requested : (view==='agenda'?'':'future');
-  for (const id of ['type-filter','from','to']) $(id).value = params.get(id) || '';
+  for (const id of ['type-filter','from','to','recurring-filter']) $(id).value = params.get(id) || '';
   render();
 }
 
@@ -1206,15 +1259,20 @@ $('year-form').onsubmit = event => {
   if (isYear(year)) navigateMonth(year+'-'+$('calendar-month').value);
 };
 fillTypes();
-for (const id of ['type-filter','period-filter','from','to']) $(id).onchange = () => {
+for (const id of ['type-filter','period-filter','from','to','recurring-filter']) $(id).onchange = () => {
   listPage = 1;
   render();
 };
 $('reset').onclick = () => {
   listPage = 1;
-  for (const id of ['type-filter','period-filter','from','to']) $(id).value='';
+  for (const id of ['type-filter','period-filter','from','to','recurring-filter']) $(id).value='';
   render();
 };
+document.querySelectorAll('[data-period-preset]').forEach(button=>{button.onclick=()=>{
+  $('period-filter').value=button.dataset.periodPreset;
+  listPage=1;
+  render();
+};});
 $('today').onclick = () => navigateMonth(nowMonth);
 $('prev').onclick = () => moveMonth(-1);
 $('next').onclick = () => moveMonth(1);

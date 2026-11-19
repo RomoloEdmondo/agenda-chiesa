@@ -897,3 +897,23 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
 .visual-color-picker .catalog-palette button[aria-pressed="true"],.catalog-color .catalog-palette button[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:-3px;border-radius:8px}
 #editor .choice-options button:has(.vivid-swatch){display:flex;align-items:center;gap:8px}
 #editor .choice-options .vivid-swatch{width:16px;height:16px}
+
+.history-filters{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;margin:6px 0 12px!important}
+.history-filters label,.history-filters input,.history-filters select{min-width:0}
+.history-filter-actions{display:flex;gap:6px;align-items:end}
+#activity-dialog,#mail-history-dialog{max-height:calc(100dvh - 24px);overflow:hidden}
+#activity-dialog[open],#mail-history-dialog[open]{display:flex;flex-direction:column}
+#activity-dialog .account-content,#mail-history-dialog .account-content{overflow:auto;min-height:0;overscroll-behavior:contain}
+#catalog-list li{padding-block:0;min-height:29px}
+#catalog-list .delete-icon{height:28px;width:30px}
+#catalog-list .account-row{gap:3px 8px}
+#team-filter-presets{display:flex;align-items:end;gap:10px;flex:1 1 380px}
+#team-filter-presets label{flex:1;min-width:130px}
+.filter-presets{display:flex;gap:5px;flex-wrap:wrap}
+.filter-presets button{white-space:nowrap;border:1px solid var(--line);padding:7px 8px}
+.filter-presets button[aria-pressed="true"]{background:var(--soft);border-color:#90b7cf}
+@media(max-width:760px){
+  #team-filter-presets{grid-column:1/-1;flex-wrap:wrap;gap:6px}
+  .history-filters input{font-size:16px}
+  .filter-presets button{font-size:.78rem}
+}
