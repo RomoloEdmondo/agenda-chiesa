@@ -92,7 +92,7 @@ function row(event, team=false) {
       statusBadge(event.status)
     : '';
   return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
-    '<span class="row-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><span aria-hidden="true">›</span></button>';
+    '<span class="row-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>';
 }
 
 function renderCalendar(list) {
@@ -133,9 +133,9 @@ function listPagination(total) {
   const pages = Math.ceil(total/pageSize);
   if (pages < 2) return '';
   return '<nav class="list-pagination" aria-label="Paginazione appuntamenti">'+
-    '<button type="button" class="plain" data-list-page="'+(listPage-1)+'"'+(listPage===1?' disabled':'')+'>‹ Indietro</button>'+
+    '<button type="button" class="plain" data-list-page="'+(listPage-1)+'"'+(listPage===1?' disabled':'')+'><svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>Indietro</button>'+
     '<span role="status">Pagina '+listPage+' di '+pages+'</span>'+
-    '<button type="button" class="plain" data-list-page="'+(listPage+1)+'"'+(listPage===pages?' disabled':'')+'>Avanti ›</button></nav>';
+    '<button type="button" class="plain" data-list-page="'+(listPage+1)+'"'+(listPage===pages?' disabled':'')+'>Avanti<svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></nav>';
 }
 
 function renderPrep(list) {
@@ -212,7 +212,7 @@ function filteredProgramTitle() {
 
 function renderTeam(list) {
   $('team').innerHTML = '<div class="panel-head"><div><h2>Appuntamenti in programma</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
-    '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <span aria-hidden="true">⌄</span></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10l-7-7Zm0 0v7h7M8 14h8m-8 3h5"/></svg>Condividi PDF</button><button type="button" class="plain" id="copy-link"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2"/></svg>Copia link</button><button type="button" class="plain" id="print"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-3"/><path d="M7 14h10v7H7z"/></svg>Stampa / PDF</button></div></details></div></div>'+
+    '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10l-7-7Zm0 0v7h7M8 14h8m-8 3h5"/></svg>Condividi PDF</button><button type="button" class="plain" id="copy-link"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2"/></svg>Copia link</button><button type="button" class="plain" id="print"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-3"/><path d="M7 14h10v7H7z"/></svg>Stampa / PDF</button></div></details></div></div>'+
     (list.slice((listPage-1)*pageSize,listPage*pageSize).map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
   const sharing = $('team').querySelector('.team-sharing');
   sharing.addEventListener('click',event=>{
@@ -299,7 +299,7 @@ function mountColorChoices(root) {
     grid.setAttribute('aria-label','Colori disponibili');
     const values = [...select.options].map(option=>({value:option.value,label:option.textContent}));
     const paint = () => {
-      summary.innerHTML = '<span class="color-swatch vivid-swatch" data-color="'+(input.value || 'auto')+'" aria-hidden="true"></span><span aria-hidden="true">⌄</span>';
+      summary.innerHTML = '<span class="color-swatch vivid-swatch" data-color="'+(input.value || 'auto')+'" aria-hidden="true"></span><svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
       summary.setAttribute('aria-label','Colore: '+(palette[input.value] || 'Colore del tipo'));
       grid.querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.colorValue===input.value)));
     };
@@ -353,7 +353,7 @@ function catalogColorPicker(name) {
   const selected = typeColor(name);
   return '<details class="catalog-color" data-color-type="'+escape(name)+'">'+
     '<summary aria-label="Colore di '+escape(name)+': '+palette[selected]+'">'+
-    '<span class="color-swatch" data-color="'+selected+'" aria-hidden="true"></span><span aria-hidden="true">⌄</span></summary>'+
+    '<span class="color-swatch" data-color="'+selected+'" aria-hidden="true"></span><svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>'+
     '<div class="catalog-palette" role="group" aria-label="Scegli colore">'+
     Object.entries(palette).map(([color,label])=>'<button type="button" class="icon-button" data-pick-color="'+color+
       '" aria-label="'+label+'" aria-pressed="'+(selected===color)+'" title="'+label+
@@ -958,9 +958,9 @@ function historyPager(prefix,{page,total,pageSize},change) {
   const pages=Math.max(1,Math.ceil(total/pageSize));
   target.replaceChildren();
   if(!total) return;
-  for(const [label,next] of [['‹ Indietro',page-1],['Avanti ›',page+1]]){
+  for(const [label,next] of [['Indietro',page-1],['Avanti',page+1]]){
     const button=document.createElement('button');
-    button.type='button';button.className='plain';button.textContent=label;
+    button.type='button';button.className='plain';button.innerHTML=next<page ? '<svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>'+label : label+'<svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>';
     button.disabled=next<1||next>pages;
     button.onclick=async()=>{
       target.querySelectorAll('button').forEach(b=>b.disabled=true);

@@ -1083,3 +1083,19 @@ input::placeholder,textarea::placeholder{color:#8795a5}
 .system-section>p{font-size:.77rem;line-height:1.5;margin-top:10px}
 .system-issue{background:#fff6e6;color:#806025;border-radius:8px;padding:10px;font-size:.8rem}
 @media(max-width:600px){.system-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.system-facts{gap:10px}.system-metric{padding:10px}#system-dialog .account-content{padding:12px}}
+
+/* Consistent icon geometry: chevrons use vectors rather than font glyphs. */
+.ui-chevron{display:block;width:18px;height:18px;flex:0 0 18px;vertical-align:middle}
+.user-back,.list-pagination button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.user-back .ui-chevron{width:20px;height:20px;flex-basis:20px}
+.history-filter-panel>summary .ui-chevron{width:20px;height:20px;flex-basis:20px}
+.history-filter-panel[open]>summary .ui-chevron{transform:rotate(180deg)}
+.team-sharing>summary,#event-sharing>summary{display:inline-flex;align-items:center;justify-content:center;gap:7px;line-height:1.3}
+.team-sharing>summary>.action-icon,#event-sharing>summary>.action-icon{display:block;width:18px;height:18px;flex:0 0 18px}
+#event-sharing summary .action-icon:last-child{width:18px;height:18px}
+.team-sharing[open]>summary>.ui-chevron{transform:rotate(180deg)}
+.visual-color-picker summary .ui-chevron,.catalog-color summary .ui-chevron{width:18px;height:18px;flex-basis:18px}
+.visual-color-picker[open]>summary>.ui-chevron,.catalog-color[open]>summary>.ui-chevron{transform:rotate(180deg)}
+.event-row>.ui-chevron{width:16px;height:18px;flex-basis:16px;justify-self:center}
+.user-list-row>.ui-chevron{width:18px;height:18px}
+@media(prefers-reduced-motion:no-preference){.ui-chevron{transition:transform .15s ease}}
