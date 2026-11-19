@@ -254,6 +254,55 @@ function typeColor(name) {
 
 const colorOptions = selected => Object.entries(palette).map(([id,label])=>option(id,label,id===selected)).join('');
 
+
+function mountColorChoices(root) {
+  root.querySelectorAll('select[name="color"]').forEach(select=>{
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'color';
+    input.value = select.value;
+    input.defaultValue = select.value;
+    input.disabled = select.disabled;
+    const picker = document.createElement('details');
+    picker.className = 'visual-color-picker';
+    const summary = document.createElement('summary');
+    summary.setAttribute('aria-label','Scegli colore');
+    const grid = document.createElement('div');
+    grid.className = 'catalog-palette';
+    grid.setAttribute('role','group');
+    grid.setAttribute('aria-label','Colori disponibili');
+    const values = [...select.options].map(option=>({value:option.value,label:option.textContent}));
+    const paint = () => {
+      summary.innerHTML = '<span class="color-swatch vivid-swatch" data-color="'+(input.value || 'auto')+'" aria-hidden="true"></span><span aria-hidden="true">⌄</span>';
+      summary.setAttribute('aria-label','Colore: '+(palette[input.value] || 'Colore del tipo'));
+      grid.querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.colorValue===input.value)));
+    };
+    for (const {value,label} of values) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'icon-button';
+      button.dataset.colorValue = value;
+      button.setAttribute('aria-label',label);
+      button.title = label;
+      button.innerHTML = '<span class="color-swatch vivid-swatch" data-color="'+(value || 'auto')+'" aria-hidden="true"></span>';
+      button.onclick = () => {
+        input.value = value;
+        paint();
+        input.dispatchEvent(new Event('change',{bubbles:true}));
+        picker.open = false;
+        summary.focus();
+      };
+      grid.append(button);
+    }
+    picker.append(summary,grid);
+    select.replaceWith(input,picker);
+    paint();
+    input.form?.addEventListener('reset',()=>{
+      queueMicrotask(()=>{ input.value = input.defaultValue; picker.open = false; paint(); });
+    });
+  });
+}
+
 function catalogNames(kind) {
   const entries = catalog.filter(entry=>entry.kind===kind);
   const names = kind==='type' ? [...types,...events.map(event=>event.type)] : events.flatMap(speakers);
@@ -360,9 +409,16 @@ function openCatalog(kind) {
   $('catalog-last-label').hidden = !isSpeaker;
   $('catalog-color-label').hidden = isSpeaker;
   $('catalog-form').elements.color.disabled = isSpeaker;
-  $('catalog-form').elements.color.innerHTML = colorOptions('gray');
+  const oldColor = $('catalog-form').elements.color;
+  const colorSelect = document.createElement('select');
+  colorSelect.name = 'color';
+  colorSelect.disabled = isSpeaker;
+  colorSelect.innerHTML = colorOptions('gray');
+  $('catalog-color-label').querySelector('.visual-color-picker')?.remove();
+  oldColor.replaceWith(colorSelect);
   $('catalog-form').elements.lastName.required = isSpeaker;
   $('catalog-form').reset();
+  mountColorChoices($('catalog-form'));
   $('catalog-form').hidden = true;
   $('catalog-add').setAttribute('aria-expanded','false');
   $('catalog-message').textContent = '';
@@ -638,7 +694,9 @@ function renderEditor(editing) {
         '<button type="button" class="icon-button choice-toggle" aria-label="Mostra elenco: '+label+
         '" aria-expanded="false" aria-controls="'+key+'-choices"'+(names.length?'':' disabled')+'></button></div>'+
         '<div class="choice-options" id="'+key+'-choices" hidden>'+
-        names.map(name=>'<button type="button" data-value="'+escape(name)+'">'+escape(name)+'</button>').join('')+'</div></div>';
+        names.map(name=>'<button type="button" data-value="'+escape(name)+'">'+
+            (key==='type' ? '<span class="color-swatch vivid-swatch" data-color="'+typeColor(name)+'" aria-hidden="true"></span>' : '')+
+            escape(name)+'</button>').join('')+'</div></div>';
     }
     const field = kind==='select' ? '<select name="'+key+'" class="status-select" data-status="'+value+'">'+statuses.map(v=>option(v,v,v===active[key])).join('')+'</select>'
       : kind==='textarea' ? '<textarea rows="3" maxlength="5000" name="'+key+'">'+value+'</textarea>'
@@ -668,6 +726,7 @@ function renderEditor(editing) {
     const done = active.tasks.filter(task=>task.done).length;
     $('checklist-summary').textContent = total ? done+' di '+total+' completate' : 'Nessuna attività';
   } else {
+    mountColorChoices($('event-form'));
     const placeInput = $('event-place-input');
     $('edit-place').onclick = () => {
       $('event-place-preview').hidden = true;
@@ -884,7 +943,13 @@ function editSeries(series) {
   seriesForm.reset();
   $('series-form-title').textContent = series ? 'Modifica serie' : 'Nuova serie settimanale';
   $('series-weekday').innerHTML = weekdays.map((day,i)=>option(String(i),day)).join('');
-  $('series-color').innerHTML = option('','Colore del tipo')+colorOptions(series?.color);
+  const oldColor = seriesForm.elements.color;
+  const seriesColorSelect = document.createElement('select');
+  seriesColorSelect.id = 'series-color';
+  seriesColorSelect.name = 'color';
+  seriesColorSelect.innerHTML = option('','Colore del tipo')+colorOptions(series?.color);
+  seriesForm.querySelector('.visual-color-picker')?.remove();
+  oldColor.replaceWith(seriesColorSelect);
   $('series-types').innerHTML = catalogNames('type').map(name=>option(name)).join('');
   if (series) {
     for (const field of seriesForm.elements) {
@@ -894,6 +959,7 @@ function editSeries(series) {
     seriesForm.elements.starts.value = today;
     seriesForm.elements.weekday.value = String(new Date(today+'T12:00:00Z').getUTCDay());
   }
+  mountColorChoices(seriesForm);
   seriesForm.hidden = false;
   seriesForm.elements.title.focus();
 }

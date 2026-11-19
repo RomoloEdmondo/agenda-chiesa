@@ -877,3 +877,23 @@ html:has(#catalog-dialog[open]),body:has(#catalog-dialog[open]){overflow:hidden}
 #editor #add-task{margin-top:2px;padding:4px 6px}
 #editor .tasks:has(#task-list:empty) .checklist-heading{margin-bottom:0}
 #editor .tasks:has(#task-list:empty) #add-task{margin-top:0;padding-block:3px}
+
+.vivid-swatch,.catalog-color .color-swatch{--swatch:#64748b;background:var(--swatch);border-color:var(--swatch)}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="blue"]{--swatch:#2877e3}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="green"]{--swatch:#20964e}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="yellow"]{--swatch:#f1bc15}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="pink"]{--swatch:#e34f9a}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="orange"]{--swatch:#ed791d}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="purple"]{--swatch:#874bd5}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="teal"]{--swatch:#149c97}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="red"]{--swatch:#db3b49}
+:is(.vivid-swatch,.catalog-color .color-swatch)[data-color="brown"]{--swatch:#91603d}
+.vivid-swatch[data-color="auto"]{background:conic-gradient(#2877e3,#20964e,#f1bc15,#e34f9a,#2877e3);border-color:#8999a5}
+.visual-color-picker summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;min-height:32px;width:fit-content}
+.visual-color-picker summary::-webkit-details-marker{display:none}
+.visual-color-picker .color-swatch,.catalog-color .color-swatch{width:23px;height:23px}
+.visual-color-picker .catalog-palette,.catalog-color .catalog-palette{grid-template-columns:repeat(5,40px);gap:4px;padding-block:6px}
+.visual-color-picker .catalog-palette button,.catalog-color .catalog-palette button{width:40px;height:40px;display:grid;place-items:center;padding:0}
+.visual-color-picker .catalog-palette button[aria-pressed="true"],.catalog-color .catalog-palette button[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:-3px;border-radius:8px}
+#editor .choice-options button:has(.vivid-swatch){display:flex;align-items:center;gap:8px}
+#editor .choice-options .vivid-swatch{width:16px;height:16px}
