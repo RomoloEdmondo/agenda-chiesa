@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Calendario e preparazione degli appuntamenti della Christliche Gemeinde Ruchheim.">
+<title>Agenda · Christliche Gemeinde Ruchheim</title>
+<link rel="icon" type="image/png" href="./favicon.png">
+<link rel="apple-touch-icon" href="./favicon.png">
+<meta name="apple-mobile-web-app-title" content="Agenda Ruchheim">
+<link rel="canonical" href="https://romoloedmondo.github.io/agenda-chiesa/">
+<meta name="theme-color" content="#154d70">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="it_IT">
+<meta property="og:site_name" content="Chiesa Evangelica Ruchheim">
+<meta property="og:title" content="Agenda · Christliche Gemeinde Ruchheim">
+<meta property="og:description" content="Calendario e preparazione degli appuntamenti della Christliche Gemeinde Ruchheim.">
+<meta property="og:url" content="https://romoloedmondo.github.io/agenda-chiesa/">
+<meta property="og:image" content="https://romoloedmondo.github.io/agenda-chiesa/condivisione.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Logo della Chiesa Evangelica Ruchheim">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="./style.css">
+<script type="module" src="./login.js"></script>
+</head>
+<body>
+<section id="login-shell" class="account panel" aria-labelledby="login-title">
+  <img class="login-logo" src="./logo-ruchheim.webp" width="180" height="128" alt="Chiesa Evangelica Ruchheim">
+  <h1 id="login-title">Accedi all’agenda</h1>
+  <form id="login-form">
+    <label id="login-email">Email<input name="email" type="email" autocomplete="username" maxlength="254" required></label>
+    <label>Password<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label>
+    <label id="confirm-password" hidden>Conferma password<input name="confirmation" type="password" autocomplete="new-password" maxlength="256" disabled></label>
+    <label id="setup-code" hidden>Codice di configurazione<input name="code" type="password" maxlength="128" autocomplete="off"></label>
+    <button class="primary" id="login-submit">Accedi</button>
+  </form>
+  <p id="login-message" role="status" aria-atomic="true"></p>
+  <div class="passkey-divider" id="passkey-divider" hidden><span>oppure</span></div>
+  <button type="button" class="plain" id="passkey-login" hidden><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="5"/><path d="m11.5 11.5 8-8m-3 3 2 2m-5 1 2 2"/></svg>Accedi con passkey</button>
+  <button class="plain" id="setup-toggle" hidden>Configura amministratore</button>
+</section>
+<div id="protected-app" hidden>
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="./" aria-label="Agenda della Christliche Gemeinde Ruchheim">
+      <img class="brand-logo" src="./simbolo-ruchheim.webp" width="48" height="37" alt=""><span>Chiesa Evangelica<small>RUCHHEIM</small></span>
+    </a>
+    <nav class="agenda-nav" aria-label="Viste dell’agenda">
+      <button data-view="agenda"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg>Calendario</button><button data-view="prep"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V3h6v2m-7 9 2 2 5-5"/></svg>Preparazione</button><button data-view="team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-16a3 3 0 0 1 0 6m1 4a5 5 0 0 1 4 5v1"/></svg>Programma</button>
+
+      <details id="catalog-menu" hidden>
+        <summary class="square" aria-label="Menu di gestione"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="agenda-nav-menu-label" aria-hidden="true">Menu</span></summary>
+        <div class="panel catalog-menu-items">
+          <button type="button" class="plain" data-catalog="speaker"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1m-7 8v4m-4 0h8"/></svg>Relatori</button>
+          <button type="button" class="plain" data-catalog="type"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h9l9 9-8 8-10-10V4Z"/><circle cx="7.5" cy="8" r="1"/></svg>Tipi di evento</button>
+        </div>
+      </details>
+    </nav>
+    <div class="account-actions"><details id="admin-menu" hidden>
+        <summary class="plain action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>Admin</summary>
+        <div class="panel admin-menu-items">
+          <button type="button" class="plain" id="manage-users"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-16a3 3 0 0 1 0 6m1 4a5 5 0 0 1 4 5v1"/></svg>Utenti</button>
+          <button type="button" class="plain" id="open-mail-history"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Storico email e promemoria</button>
+          <button type="button" class="plain" id="open-series"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 2 4 4-4 4M4 11V9a3 3 0 0 1 3-3h13M8 22l-4-4 4-4m12-1v2a3 3 0 0 1-3 3H4"/></svg>Eventi ricorrenti</button>
+          <button type="button" class="plain" id="open-activity"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h4"/></svg>Registro attività</button>
+        </div>
+      </details><details id="account-menu">
+        <summary aria-label="Menu account"><span class="account-avatar"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></span><span id="account-name"></span><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="panel admin-menu-items">
+          <button type="button" class="plain" id="manage-passkeys"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="5"/><path d="m11.5 11.5 8-8m-3 3 2 2m-5 1 2 2"/></svg>Passkey</button>
+          <button type="button" class="plain" id="change-password"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg>Cambia password</button>
+          <button type="button" class="plain" id="logout"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3m10-8h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Esci</button>
+        </div>
+      </details></div>
+  </div>
+</header>
+<main class="wrap">
+  <section class="hero">
+    <div class="hero-content"><h1 id="page-title">Agenda della comunità</h1>
+    <p id="page-subtitle">Appuntamenti e preparazione del programma della comunità.</p></div>
+    <img class="hero-logo" src="./simbolo-ruchheim.webp" width="76" height="58" alt="">
+  </section>
+  <div id="notice" class="toast" data-kind="success" hidden><span class="toast-symbol" aria-hidden="true"><svg class="toast-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg><svg class="toast-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v7m0 4v.1"/></svg></span><p id="toast-message" role="status"></p><button type="button" class="icon-button" id="toast-close" aria-label="Chiudi notifica">×</button></div>
+  <section class="filters panel" aria-label="Filtri eventi">
+    <label>Tipo evento<select id="type-filter"><option value="">Tutti i tipi</option></select></label>
+    <label>Periodo<select id="period-filter"><option value="">Tutto il programma</option><option value="future">Da oggi in poi</option><option value="current-month">Mese corrente</option><option value="next-month">Mese successivo</option><option value="past">Appuntamenti passati</option><option value="undated">Data da confermare</option><option value="custom">Intervallo personalizzato</option></select></label>
+    <div id="date-filters" hidden><label>Dal<input id="from" type="date"></label><label>Al<input id="to" type="date"></label></div>
+    <div id="team-filter-presets" hidden><input type="hidden" id="recurring-filter" value=""><button type="button" id="recurring-toggle" class="recurring-toggle" aria-label="Mostra eventi ricorrenti" title="Mostra eventi ricorrenti" aria-pressed="true"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 2 4 4-4 4M4 11V9a3 3 0 0 1 3-3h13M8 22l-4-4 4-4m12-1v2a3 3 0 0 1-3 3H4"/></svg><span class="recurring-toggle-label">Eventi ricorrenti</span><span class="recurring-toggle-state" aria-hidden="true">✓</span></button><div class="filter-presets" role="group" aria-label="Periodo rapido"><button type="button" class="plain" data-period-preset="current-month">Mese corrente</button><button type="button" class="plain" data-period-preset="next-month">Mese successivo</button></div></div>
+    <button class="plain" id="reset">Azzera filtri</button>
+  </section>
+  <section id="agenda" class="agenda">
+    <article class="panel calendar">
+      <div class="panel-head"><div><p class="eyebrow">PROGRAMMA</p><h2>Calendario</h2></div>
+        <div class="calendar-period"><label>Mese<select id="calendar-month"></select></label><form id="year-form"><label>Anno<input id="calendar-year" type="number" min="1" max="9999" step="1" required></label><button class="plain">Vai</button></form></div>
+      </div>
+      <div class="monthbar"><div class="month-heading"><h3 id="month-title"></h3><button class="primary" id="new-event"><span aria-hidden="true">＋</span> Nuovo evento</button></div><div class="month-controls"><button id="today" class="plain">Oggi</button><button class="square" id="prev" aria-label="Mese precedente">‹</button><button class="square" id="next" aria-label="Mese successivo">›</button></div></div>
+      <div class="weekdays" aria-hidden="true"><span>Lun</span><span>Mar</span><span>Mer</span><span>Gio</span><span>Ven</span><span>Sab</span><span>Dom</span></div>
+      <div id="days" class="days" aria-labelledby="month-title"></div>
+      <div id="month-events"></div>
+    </article>
+    <aside class="panel upcoming">
+      <div class="panel-head"><div><p class="eyebrow">AGENDA</p><h2>Prossimi appuntamenti</h2></div></div>
+      <div id="upcoming"></div>
+      <button class="plain more" id="more" hidden>Mostra tutti gli appuntamenti →</button>
+    </aside>
+  </section>
+  <section id="prep" class="panel standalone" hidden></section>
+  <section id="team" class="panel standalone" hidden></section>
+</main>
+<footer class="church-footer">
+  <div class="church-footer-inner">
+    <span class="footer-brand"><img src="./simbolo-ruchheim.webp" width="32" height="25" alt="">Chiesa Evangelica Ruchheim</span>
+    <nav aria-label="Link della chiesa">
+      <a href="https://it.cg-ruchheim.de/"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>Sito chiesa</a>
+      <a href="mailto:info@cg-ruchheim.de"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Email</a>
+      <a href="https://www.instagram.com/ce_ruchheim/reels/"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17 7h.01"/></svg>Instagram</a>
+      <a href="https://www.youtube.com/@dioticerca72/videos"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none"/></svg>YouTube</a>
+    </nav>
+  </div>
+</footer>
+<dialog id="editor" aria-labelledby="editor-label">
+  <form id="event-form">
+    <div class="dialog-head"><div class="editor-heading"><p class="eyebrow" id="editor-label">Scheda evento</p><h2 id="edit-title"></h2><input type="text" name="title" id="event-title" aria-label="Titolo evento" placeholder="Titolo del nuovo evento" maxlength="5000" required hidden disabled></div><div id="editor-type"></div><button type="button" id="edit-event" aria-label="Modifica evento" title="Modifica evento" hidden><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5 4 4M4 20l4.5-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z"/></svg><span>Modifica</span></button><button type="button" class="square" id="close-editor" aria-label="Chiudi">×</button></div>
+    <div id="details"></div>
+    <div class="dialog-footer">
+      <p id="form-message" role="alert"></p>
+      <button type="button" class="danger-outline" id="delete-event" aria-label="Elimina evento" hidden><span class="delete-icon" aria-hidden="true"></span><span class="delete-event-label">Elimina evento</span></button>
+      <details id="event-sharing" hidden>
+        <summary class="plain action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi<svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></summary>
+        <div class="event-sharing-options" role="group" aria-label="Opzioni di condivisione">
+          <button type="button" class="plain" id="event-mail" hidden><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Email</button>
+          <button type="button" class="plain" id="copy-event-link"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2"/></svg>Copia link</button>
+          <button type="button" class="plain" id="share-event"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10l-7-7Zm0 0v7h7M8 14h8m-8 3h5"/></svg>Condividi PDF</button>
+        </div>
+      </details>
+      <div class="editor-actions">
+        <button type="button" class="plain" id="cancel">Chiudi</button>
+        <button class="primary success action-with-icon" id="save"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h9V3M7 21v-8h10v8"/></svg>Salva</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+<dialog id="mail-dialog" aria-labelledby="mail-title">
+  <div class="dialog-head"><h2 id="mail-title">Email evento</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content mail-content">
+    <form id="mail-form">
+      <label>Destinatario<input name="to" type="email" maxlength="254" required></label>
+      <label>Oggetto<input name="subject" maxlength="200" required></label>
+      <label>Messaggio<textarea name="body" rows="7" maxlength="6000" required></textarea></label>
+      <label>Invio<select name="mode"><option value="now">Subito</option><option value="later">Programma promemoria</option></select></label>
+      <label id="mail-date" hidden><span id="mail-zone"></span><input name="when" type="datetime-local"></label>
+      <button class="primary success" id="mail-submit">Invia email</button>
+    </form>
+    <p id="mail-message" role="status"></p>
+    <p class="muted" id="mail-latest"></p>
+  </div>
+</dialog>
+<dialog id="activity-dialog" aria-labelledby="activity-title">
+  <div class="dialog-head"><h2 id="activity-title">Registro attività</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content">
+<details class="history-filter-panel"><summary>Filtri <span aria-hidden="true">⌄</span></summary><form id="activity-filters" class="history-filters">
+<label>Dal<input type="datetime-local" name="from"></label><label>Al<input type="datetime-local" name="to"></label>
+<label>Tipo attività<select name="type"></select></label>
+<label>Utente<input type="search" name="actor" placeholder="Email utente" maxlength="254"></label>
+<label>Elemento<input type="search" name="search" maxlength="254"></label>
+<div class="history-filter-actions"><button class="primary" type="submit">Applica</button><button type="reset" class="plain">Azzera</button></div>
+</form></details>
+    <p id="activity-message" role="status"></p>
+    <ol id="activity-list"></ol>
+    <nav id="activity-pages" class="list-pagination" aria-label="Pagine registro"></nav>
+  </div>
+</dialog>
+<dialog id="mail-history-dialog" aria-labelledby="mail-history-title">
+  <div class="dialog-head"><h2 id="mail-history-title">Storico email e promemoria</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content mail-content"><details class="history-filter-panel"><summary>Filtri <span aria-hidden="true">⌄</span></summary><form id="mail-history-filters" class="history-filters">
+<label>Dal<input type="datetime-local" name="from"></label><label>Al<input type="datetime-local" name="to"></label>
+<label>Stato invio<select name="type"></select></label>
+<label>Utente<input type="search" name="actor" placeholder="Email utente" maxlength="254"></label>
+<label>Destinatario o oggetto<input type="search" name="search" maxlength="254"></label>
+<div class="history-filter-actions"><button class="primary" type="submit">Applica</button><button type="reset" class="plain">Azzera</button></div>
+</form></details><p id="mail-history-message" role="status"></p><ul id="mail-history"></ul><nav id="mail-history-pages" class="list-pagination" aria-label="Pagine storico email"></nav></div>
+</dialog>
+<dialog id="catalog-dialog" aria-labelledby="catalog-title">
+  <div class="dialog-head">
+    <h2 id="catalog-title"></h2>
+    <form method="dialog"><button class="square" aria-label="Chiudi">×</button></form>
+  </div>
+  <div class="account-content catalog-content">
+    <button type="button" class="primary" id="catalog-add" aria-controls="catalog-form" aria-expanded="false">＋ Aggiungi</button>
+    <form id="catalog-form" hidden>
+      <label><span id="catalog-first-label"></span><input name="firstName" required maxlength="100"></label>
+      <label id="catalog-last-label">Cognome<input name="lastName" maxlength="100"></label>
+      <label id="catalog-color-label" hidden>Colore<select name="color"></select></label>
+      <button class="primary success" id="catalog-save">Salva</button>
+    </form>
+    <p id="catalog-message" role="status"></p>
+    <ul id="catalog-list"></ul>
+  </div>
+</dialog>
+<dialog id="series-dialog" aria-labelledby="series-heading">
+  <div class="dialog-head"><h2 id="series-heading">Eventi ricorrenti</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content">
+    <button type="button" class="primary" id="new-series">＋ Nuova serie</button>
+    <ul id="series-list"></ul>
+    <form id="series-form" hidden>
+      <h3 id="series-form-title"></h3>
+      <label>Titolo<input name="title" maxlength="160" required></label>
+      <div class="series-fields">
+        <label>Tipo evento<input name="type" list="series-types" maxlength="100" required><datalist id="series-types"></datalist></label>
+        <label>Colore<select name="color" id="series-color"></select></label>
+        <label>Giorno della settimana<select name="weekday" id="series-weekday" required></select></label>
+        <label>Orario<input type="time" name="time"></label>
+        <label>Da<input type="date" name="starts" required></label>
+        <label>Fino al<input type="date" name="until" required></label>
+        <label>Guida/Conduzione<input name="responsible" maxlength="160"></label>
+        <label>Relatore<input name="speaker" maxlength="160"></label>
+      </div>
+      <label>Luogo<input name="place" maxlength="200"></label>
+      <label>Descrizione<textarea name="description" maxlength="2000" rows="3"></textarea></label>
+      <div class="series-actions"><button type="button" class="plain" id="cancel-series">Annulla</button><button type="submit" class="primary success">Salva serie</button></div>
+    </form>
+    <p id="series-message" role="status"></p>
+  </div>
+</dialog>
+<dialog id="passkey-dialog" aria-labelledby="passkey-title">
+  <div class="dialog-head"><h2 id="passkey-title">Passkey</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content">
+    <p>Conferma la password per aggiungere una passkey al tuo account.</p>
+    <ul id="passkey-list"></ul>
+    <form id="passkey-form">
+      <label>Nome passkey<input name="name" type="text" placeholder="Es. iPhone personale" maxlength="60" required></label>
+      <label>Password attuale<input name="password" type="password" autocomplete="current-password" maxlength="256" required></label>
+      <button type="submit" class="primary" id="create-passkey">Crea passkey</button>
+    </form>
+    <p id="passkey-status" role="status"></p>
+  </div>
+</dialog>
+<dialog id="password-dialog" aria-labelledby="password-title">
+  <div class="dialog-head"><h2 id="password-title">Cambia password</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content">
+    <form id="password-form">
+      <label>Password attuale<input name="currentPassword" type="password" autocomplete="current-password" maxlength="256" required></label>
+      <label>Nuova password<input name="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
+      <label>Conferma nuova password<input name="confirmation" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
+      <p class="muted">Usa almeno 12 caratteri. Le altre sessioni verranno chiuse.</p>
+      <button type="submit" class="primary">Aggiorna password</button>
+    </form>
+    <p id="password-status" role="status"></p>
+  </div>
+</dialog>
+<dialog id="user-admin" aria-labelledby="users-title">
+  <div class="dialog-head"><h2 id="users-title">Gestione utenti</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+  <div class="account-content user-content">
+    <div id="users-overview">
+      <div class="user-toolbar"><h3>Utenti <span id="user-count"></span></h3><button type="button" class="primary" id="show-invite">＋ Invita utente</button></div>
+      <div id="account-list"></div>
+    </div>
+    <div id="user-panel" hidden>
+      <button type="button" class="plain user-back" id="user-back">‹ Tutti gli utenti</button>
+      <section id="user-details" aria-label="Dettaglio utente" hidden></section>
+      <form id="invite-form" hidden>
+        <h3>Invita utente</h3>
+        <label>Email<input name="email" type="email" required maxlength="254"></label>
+        <label>Permessi<select name="role"><option value="viewer">Lettura</option><option value="editor">Modifica</option></select></label>
+        <button class="primary">Crea e invia invito</button>
+      </form>
+      <div id="invite-output" hidden>
+        <label>Link di invito · valido 48 ore<input id="invite-link" readonly></label>
+        <button type="button" class="primary" id="send-invite">Invia invito via email</button>
+        <button type="button" class="plain" id="copy-invite">Copia link</button>
+      </div>
+    </div>
+    <p id="admin-message" role="status"></p>
+  </div>
+</dialog>
+</div>
+</body>
+</html>
