@@ -21,7 +21,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Logo della Chiesa Evangelica Ruchheim">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./style.css?v=20261119-compact">
 <script type="module" src="./login.js"></script>
 </head>
 <body>
@@ -86,7 +86,7 @@
     <label>Tipo evento<select id="type-filter"><option value="">Tutti i tipi</option></select></label>
     <label>Periodo<select id="period-filter"><option value="">Tutto il programma</option><option value="future">Da oggi in poi</option><option value="current-month">Mese corrente</option><option value="next-month">Mese successivo</option><option value="past">Appuntamenti passati</option><option value="undated">Data da confermare</option><option value="custom">Intervallo personalizzato</option></select></label>
     <div id="date-filters" hidden><label>Dal<input id="from" type="date"></label><label>Al<input id="to" type="date"></label></div>
-    <div id="team-filter-presets" hidden><input type="hidden" id="recurring-filter" value=""><button type="button" id="recurring-toggle" class="recurring-toggle" aria-pressed="true"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 2 4 4-4 4M4 11V9a3 3 0 0 1 3-3h13M8 22l-4-4 4-4m12-1v2a3 3 0 0 1-3 3H4"/></svg>Eventi ricorrenti<span class="recurring-toggle-state" aria-hidden="true">✓</span></button><div class="filter-presets" role="group" aria-label="Periodo rapido"><button type="button" class="plain" data-period-preset="current-month">Mese corrente</button><button type="button" class="plain" data-period-preset="next-month">Mese successivo</button></div></div>
+    <div id="team-filter-presets" hidden><input type="hidden" id="recurring-filter" value=""><button type="button" id="recurring-toggle" class="recurring-toggle" aria-label="Mostra eventi ricorrenti" title="Mostra eventi ricorrenti" aria-pressed="true"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 2 4 4-4 4M4 11V9a3 3 0 0 1 3-3h13M8 22l-4-4 4-4m12-1v2a3 3 0 0 1-3 3H4"/></svg><span class="recurring-toggle-label">Eventi ricorrenti</span><span class="recurring-toggle-state" aria-hidden="true">✓</span></button><div class="filter-presets" role="group" aria-label="Periodo rapido"><button type="button" class="plain" data-period-preset="current-month">Mese corrente</button><button type="button" class="plain" data-period-preset="next-month">Mese successivo</button></div></div>
     <button class="plain" id="reset">Azzera filtri</button>
   </section>
   <section id="agenda" class="agenda">
@@ -159,13 +159,13 @@
 <dialog id="activity-dialog" aria-labelledby="activity-title">
   <div class="dialog-head"><h2 id="activity-title">Registro attività</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
   <div class="account-content">
-<form id="activity-filters" class="history-filters">
+<details class="history-filter-panel"><summary>Filtri <span aria-hidden="true">⌄</span></summary><form id="activity-filters" class="history-filters">
 <label>Dal<input type="datetime-local" name="from"></label><label>Al<input type="datetime-local" name="to"></label>
 <label>Tipo attività<select name="type"></select></label>
 <label>Utente<input type="search" name="actor" placeholder="Email utente" maxlength="254"></label>
 <label>Elemento<input type="search" name="search" maxlength="254"></label>
 <div class="history-filter-actions"><button class="primary" type="submit">Applica</button><button type="reset" class="plain">Azzera</button></div>
-</form>
+</form></details>
     <p id="activity-message" role="status"></p>
     <ol id="activity-list"></ol>
     <nav id="activity-pages" class="list-pagination" aria-label="Pagine registro"></nav>
@@ -173,13 +173,13 @@
 </dialog>
 <dialog id="mail-history-dialog" aria-labelledby="mail-history-title">
   <div class="dialog-head"><h2 id="mail-history-title">Storico email e promemoria</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
-  <div class="account-content mail-content"><form id="mail-history-filters" class="history-filters">
+  <div class="account-content mail-content"><details class="history-filter-panel"><summary>Filtri <span aria-hidden="true">⌄</span></summary><form id="mail-history-filters" class="history-filters">
 <label>Dal<input type="datetime-local" name="from"></label><label>Al<input type="datetime-local" name="to"></label>
 <label>Stato invio<select name="type"></select></label>
 <label>Utente<input type="search" name="actor" placeholder="Email utente" maxlength="254"></label>
 <label>Destinatario o oggetto<input type="search" name="search" maxlength="254"></label>
 <div class="history-filter-actions"><button class="primary" type="submit">Applica</button><button type="reset" class="plain">Azzera</button></div>
-</form><p id="mail-history-message" role="status"></p><ul id="mail-history"></ul><nav id="mail-history-pages" class="list-pagination" aria-label="Pagine storico email"></nav></div>
+</form></details><p id="mail-history-message" role="status"></p><ul id="mail-history"></ul><nav id="mail-history-pages" class="list-pagination" aria-label="Pagine storico email"></nav></div>
 </dialog>
 <dialog id="catalog-dialog" aria-labelledby="catalog-title">
   <div class="dialog-head">
