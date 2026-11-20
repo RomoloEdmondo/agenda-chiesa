@@ -253,7 +253,7 @@ function updateDescriptionLinks() {
 }
 
 function renderTeam(list) {
-  $('team').innerHTML = '<div class="panel-head"><div><h2>Appuntamenti in programma</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
+  $('team').innerHTML = '<div class="panel-head"><div><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
     '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10l-7-7Zm0 0v7h7M8 14h8m-8 3h5"/></svg>Condividi PDF</button><button type="button" class="plain" id="copy-link"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2"/></svg>Copia link</button><button type="button" class="plain" id="print"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-3"/><path d="M7 14h10v7H7z"/></svg>Stampa / PDF</button></div></details></div></div>'+
     (list.slice((listPage-1)*pageSize,listPage*pageSize).map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
   const sharing = $('team').querySelector('.team-sharing');
@@ -292,7 +292,7 @@ function render() {
   const titles = {
     agenda:['Agenda della comunità','Appuntamenti e preparazione del programma della comunità.'],
     prep:['Preparazione','Checklist e responsabilità per gli appuntamenti in programma.'],
-    team:['Programma','Programma della comunità.']
+    team:['Appuntamenti in programma','Programma della comunità.']
   };
   $('page-title').textContent = titles[view][0];
   $('page-subtitle').textContent = titles[view][1];
@@ -1412,13 +1412,15 @@ $('edit-event').onclick = () => {
 };
 $('event-form').onsubmit = save;
 document.addEventListener('click',event=>{
+  const catalogMenu = $('catalog-menu');
+  if (catalogMenu.open && !catalogMenu.contains(event.target)) catalogMenu.open = false;
   const teamSharing = $('team').querySelector('.team-sharing[open]');
   if (teamSharing && !teamSharing.contains(event.target)) teamSharing.open = false;
   const pageButton = event.target.closest('button[data-list-page]');
   if (pageButton) {
     listPage = Number(pageButton.dataset.listPage);
     render();
-    const heading = $(view).querySelector('h2');
+    const heading = $(view).querySelector('h2, .panel-head .muted');
     heading.tabIndex = -1;
     heading.focus();
     heading.scrollIntoView({block:'start'});

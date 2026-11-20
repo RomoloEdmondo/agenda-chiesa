@@ -1190,3 +1190,25 @@ dialog::backdrop{background:rgba(24,43,61,.55);-webkit-backdrop-filter:blur(3px)
  .upcoming>.panel-head{background:white}
  .upcoming>.panel-head h2{color:#203248}
 }
+
+/* Clear navigation feedback, plain content headers, full-card event targets. */
+#prep>.panel-head,#team>.panel-head{background:transparent;box-shadow:none;border-radius:0}
+.prep-card{position:relative}
+.prep-card>button[data-event]::after{content:"";position:absolute;inset:0;border-radius:inherit;cursor:pointer}
+.prep-card:hover{border-color:#8cacca;box-shadow:0 4px 12px #234c7316}
+.prep-card:has(>button[data-event]:focus-visible){outline:2px solid #397cad;outline-offset:3px}
+.prep-card>button[data-event]:focus-visible{outline:none}
+.agenda-nav>button[data-view]:hover,.agenda-nav>button[data-view]:focus-visible{
+ background:#dceaf8;color:#204f78;box-shadow:inset 0 0 0 1px #b9cfe4,0 2px 5px #244e7010;
+}
+.agenda-nav #catalog-menu>summary:hover,.agenda-nav #catalog-menu>summary:focus-visible{
+ background:#dceaf8;color:#204f78;border-color:#b9cfe4;box-shadow:0 2px 5px #244e7010;
+}
+@media screen and (min-width:761px) and (hover:hover),screen and (min-width:1101px){
+ .top-inner>.agenda-nav>button[data-view][aria-current=true]:hover{background:linear-gradient(140deg,#438abd,#2e6d9f);color:#fff;box-shadow:0 3px 7px #245b8b35,inset 0 1px #ffffff30}
+ .top-inner>.agenda-nav>#catalog-menu>summary:hover{background:#dceaf8;border-color:#b9cfe4;color:#204f78}
+}
+@media screen and (max-width:760px),screen and (max-width:1100px) and (hover:none) and (pointer:coarse){
+ .agenda-nav>button[data-view][aria-current=true]:hover{background:linear-gradient(140deg,#438abd,#2e6d9f);color:#fff}
+}
+@media(prefers-reduced-motion:no-preference){.prep-card{transition:border-color .15s ease,box-shadow .15s ease}}
