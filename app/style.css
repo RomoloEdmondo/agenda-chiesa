@@ -1212,3 +1212,14 @@ dialog::backdrop{background:rgba(24,43,61,.55);-webkit-backdrop-filter:blur(3px)
  .agenda-nav>button[data-view][aria-current=true]:hover{background:linear-gradient(140deg,#438abd,#2e6d9f);color:#fff}
 }
 @media(prefers-reduced-motion:no-preference){.prep-card{transition:border-color .15s ease,box-shadow .15s ease}}
+
+.system-communication{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px;margin:2px 0 15px;border:1px solid #cce2eb;border-radius:12px;background:linear-gradient(115deg,#edf7fa,#f5f9ff);box-shadow:0 2px 6px #244b6d06}
+.system-communication-icon{display:grid;place-items:center;width:36px;height:36px;background:#dceef4;color:#32778c;border-radius:10px;box-shadow:inset 0 0 0 1px #c5e0e9}
+.system-communication-icon .action-icon{width:21px;height:21px}
+.system-communication h3{font-size:.94rem;color:#25465e;margin:0 0 4px}
+.system-communication p{font-size:.78rem;line-height:1.4;color:#637c8e}
+.system-communication>.primary{font-size:.8rem;min-height:36px}
+.system-communication>.primary>.action-icon{width:16px;height:16px;flex:none}
+.system-history-back{display:inline-flex;align-items:center;gap:5px;margin-bottom:12px;padding-left:0;font-size:.84rem}
+.system-history-back>.action-icon{width:18px;height:18px;flex:none}
+@media(max-width:600px){.system-communication{grid-template-columns:32px minmax(0,1fr);padding:12px;gap:10px}.system-communication-icon{width:32px;height:32px}.system-communication>.primary{grid-column:1/-1;justify-content:center;width:100%}}

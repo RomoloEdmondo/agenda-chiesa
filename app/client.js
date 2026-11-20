@@ -1170,6 +1170,7 @@ $('open-activity').onclick = async () => {
 
 $('open-mail-history').onclick = async () => {
   if (!isAdmin()) return;
+  $('system-dialog').close();
   $('admin-menu').open = false;
   mailHistoryPage = 1;
   $('mail-history-pages').replaceChildren();

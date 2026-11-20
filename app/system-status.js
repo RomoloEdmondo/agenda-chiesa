@@ -63,5 +63,11 @@ export function initSystemStatus() {
     dialog.showModal();
     load();
   };
+  document.getElementById('mail-back-system').onclick=()=>{
+    if(!isAdmin()) return;
+    document.getElementById('mail-history-dialog').close();
+    dialog.showModal();
+    document.getElementById('open-mail-history').focus();
+  };
   refresh.onclick=load;
 }
