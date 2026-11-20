@@ -1223,3 +1223,42 @@ dialog::backdrop{background:rgba(24,43,61,.55);-webkit-backdrop-filter:blur(3px)
 .system-history-back{display:inline-flex;align-items:center;gap:5px;margin-bottom:12px;padding-left:0;font-size:.84rem}
 .system-history-back>.action-icon{width:18px;height:18px;flex:none}
 @media(max-width:600px){.system-communication{grid-template-columns:32px minmax(0,1fr);padding:12px;gap:10px}.system-communication-icon{width:32px;height:32px}.system-communication>.primary{grid-column:1/-1;justify-content:center;width:100%}}
+
+/* Operational detail panels: compact overview, progressive technical detail. */
+.system-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:4px}
+.system-detail-panel{min-width:0;padding:14px;border:1px solid #d9e4ef;border-radius:12px;background:#fff;box-shadow:0 2px 6px #23476705}
+.system-panel-heading{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+.system-panel-heading h3{font-size:.9rem;color:#28465f;margin:0}
+.system-panel-heading p{font-size:.73rem;color:#77899a;margin:3px 0 0;line-height:1.35}
+.system-panel-icon{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:9px;color:#447aa3;background:#eaf2fb}
+.system-panel-icon svg{width:19px;height:19px}
+.system-panel-backend .system-panel-icon{background:#f0edfa;color:#7964a4}
+.system-panel-mail .system-panel-icon{background:#e5f3f6;color:#337e8e}
+.system-panel-tools .system-panel-icon{background:#f7f0e5;color:#9b773d}
+.system-detail-panel .system-facts{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.system-detail-panel .system-facts>div{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr);gap:8px;align-items:baseline;padding:7px 0;border-bottom:1px solid #edf1f6}
+.system-detail-panel .system-facts>div:last-child{border-bottom:0}
+.system-detail-panel .system-facts dt{font-size:.73rem;line-height:1.4}
+.system-detail-panel .system-facts dd{font-size:.78rem;margin:0;line-height:1.4;overflow-wrap:anywhere}
+.system-technical{margin-top:9px;border-top:1px solid #e4ebf2;padding-top:9px}
+.system-technical summary{cursor:pointer;font-size:.75rem;color:#507393;font-weight:600}
+.system-technical .system-facts>div{display:block;padding-block:7px}
+.system-technical .system-facts dd{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.7rem;margin-top:3px;user-select:text}
+.system-panel-mail,.system-panel-tools{grid-column:1/-1}
+.system-panel-mail{background:linear-gradient(120deg,#f5fbfc,#fbfdff);border-color:#cfe3eb}
+.system-mail-counters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.system-mail-counters>div{display:grid;gap:6px;padding:10px 12px;border:1px solid #e0e8ef;border-radius:9px;background:#fff}
+.system-mail-counters span{font-size:.72rem;color:#6c8294}
+.system-mail-counters strong{font-size:1.15rem;color:#29475d}
+.system-mail-counters [data-tone=blue]{background:#edf5ff;border-color:#d1e2f5}
+.system-mail-counters [data-tone=red]{background:#fff1f4;border-color:#f1d1db}
+.system-mail-counters [data-tone=red] strong{color:#ac3e59}
+.system-mail-counters [data-tone=amber]{background:#fff8eb;border-color:#eeddb7}
+.system-mail-counters [data-tone=amber] strong{color:#936c29}
+.system-mail-last{font-size:.74rem;color:#6b8192;margin-top:12px}
+.system-mail-last strong{color:#3a576c;font-weight:600;margin-left:6px}
+.system-mail-hint{font-size:.72rem;color:#77899a;line-height:1.5;margin-top:7px}
+.system-panel-actions{display:flex;justify-content:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid #dae8ef}
+.system-panel-actions>.primary{font-size:.8rem;min-height:36px}
+.system-panel-actions .action-icon{width:16px;height:16px;flex:none}
+@media(max-width:650px){.system-detail-grid{grid-template-columns:minmax(0,1fr)}.system-panel-mail,.system-panel-tools{grid-column:auto}.system-mail-counters{grid-template-columns:repeat(2,minmax(0,1fr))}.system-panel-actions>.primary{width:100%;justify-content:center}.system-detail-panel{padding:12px}.system-mail-last strong{display:block;margin:4px 0 0}}
