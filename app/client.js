@@ -210,6 +210,48 @@ function filteredProgramTitle() {
     $('recurring-filter').value==='without'?'Senza eventi ricorrenti':''].filter(Boolean).join(' · ');
 }
 
+
+function descriptionUrls(value) {
+  const source=String(value || '');
+  const matches=[];
+  for(const match of source.matchAll(/(?:https?:\/\/|www\.)[^\s<>"'\u201c\u201d]+/gi)) {
+    let label=match[0].replace(/[.,;:!?\u2026]+$/g,'');
+    for(const [open,close] of [['(',')'],['[',']'],['{','}']]) {
+      while(label.endsWith(close) && label.split(close).length>label.split(open).length) label=label.slice(0,-1);
+    }
+    try {
+      const url=new URL(/^www\./i.test(label)?'https://'+label:label);
+      if(!['http:','https:'].includes(url.protocol) || !url.hostname) continue;
+      matches.push({label,href:url.href,index:match.index});
+    } catch {}
+  }
+  return matches;
+}
+
+function descriptionLinkMarkup(link) {
+  return '<a href="'+escape(link.href)+'" target="_blank" rel="noopener noreferrer">'+escape(link.label)+'</a>';
+}
+
+function linkedDescription(value) {
+  const source=String(value || '');
+  let result='',offset=0;
+  for(const link of descriptionUrls(source)) {
+    result+=escape(source.slice(offset,link.index))+descriptionLinkMarkup(link);
+    offset=link.index+link.label.length;
+  }
+  return result+escape(source.slice(offset));
+}
+
+function updateDescriptionLinks() {
+  const input=$('event-form').elements.description;
+  const target=$('description-links');
+  if(!input || !target) return;
+  const unique=[...new Map(descriptionUrls(input.value).map(link=>[link.href,link])).values()];
+  target.hidden=!unique.length;
+  target.innerHTML=unique.length?'<span class="description-links-label">Link nella descrizione</span>'+
+    unique.map(link=>descriptionLinkMarkup(link)).join(''):'';
+}
+
 function renderTeam(list) {
   $('team').innerHTML = '<div class="panel-head"><div><h2>Appuntamenti in programma</h2><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
     '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10l-7-7Zm0 0v7h7M8 14h8m-8 3h5"/></svg>Condividi PDF</button><button type="button" class="plain" id="copy-link"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2"/></svg>Copia link</button><button type="button" class="plain" id="print"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-3"/><path d="M7 14h10v7H7z"/></svg>Stampa / PDF</button></div></details></div></div>'+
@@ -671,7 +713,7 @@ function renderEditor(editing) {
     const value = escape(active[key]);
     if (key==='description') {
       return '<details class="event-description"'+(value?' open':'')+'><summary>Descrizione</summary>'+
-        '<p class="event-text">'+(value || 'Nessuna descrizione.')+'</p></details>';
+        '<p class="event-text">'+(linkedDescription(active.description) || 'Nessuna descrizione.')+'</p></details>';
     }
     if (key==='end' && !value) return '';
     let display = key==='status' ? statusBadge(active.status) : value;
@@ -709,7 +751,7 @@ function renderEditor(editing) {
     }
     if (key==='description') {
       return '<details class="event-description"'+(active.description?.trim()?' open':'')+'><summary>Descrizione</summary>'+
-        '<textarea name="description" aria-label="Descrizione" rows="3" maxlength="5000">'+value+'</textarea></details>';
+        '<textarea name="description" aria-label="Descrizione" rows="3" maxlength="5000">'+value+'</textarea><div id="description-links" class="description-links" hidden></div></details>';
     }
     if (kind==='suggestions') {
       const names = catalogNames(key);
@@ -752,6 +794,8 @@ function renderEditor(editing) {
     const done = active.tasks.filter(task=>task.done).length;
     $('checklist-summary').textContent = total ? done+' di '+total+' completate' : 'Nessuna attività';
   } else {
+    $('event-form').elements.description.addEventListener('input',updateDescriptionLinks);
+    updateDescriptionLinks();
     mountColorChoices($('event-form'));
     const placeInput = $('event-place-input');
     $('edit-place').onclick = () => {

@@ -1099,3 +1099,26 @@ input::placeholder,textarea::placeholder{color:#8795a5}
 .event-row>.ui-chevron{width:16px;height:18px;flex-basis:16px;justify-self:center}
 .user-list-row>.ui-chevron{width:18px;height:18px}
 @media(prefers-reduced-motion:no-preference){.ui-chevron{transition:transform .15s ease}}
+
+/* Quiet color accents keep management menus compact and easy to scan. */
+.admin-menu-items,.catalog-menu-items{
+ background:linear-gradient(145deg,#fff 30%,#f3f7fc 100%);border-color:#dbe5f1;
+}
+.admin-menu-items button,.catalog-menu-items button{--menu-accent:#52769f;--menu-soft:#eaf1fa}
+#admin-menu #manage-users{--menu-accent:#526cba;--menu-soft:#edf0fc}
+#admin-menu #open-mail-history{--menu-accent:#287d93;--menu-soft:#e9f5f8}
+#admin-menu #open-series{--menu-accent:#7862ac;--menu-soft:#f1edfa}
+#admin-menu #open-system{--menu-accent:#32816b;--menu-soft:#eaf5f0}
+#admin-menu #open-activity{--menu-accent:#a57938;--menu-soft:#faf3e6}
+#catalog-menu [data-catalog=speaker]{--menu-accent:#467f9f;--menu-soft:#eaf3f8}
+#catalog-menu [data-catalog=type]{--menu-accent:#8b67a7;--menu-soft:#f3edf8}
+#account-menu #logout{--menu-accent:#a53c53;--menu-soft:#fceef2}
+.admin-menu-items button>.action-icon,.catalog-menu-items button>.action-icon{
+ color:var(--menu-accent);background:var(--menu-soft);box-shadow:0 0 0 4px var(--menu-soft);border-radius:4px;
+}
+.admin-menu-items button:hover,.catalog-menu-items button:hover{background:var(--menu-soft);color:var(--menu-accent)}
+#editor .event-text a,.description-links a{color:#28699c;text-decoration:underline;text-decoration-color:#aac8de;text-underline-offset:3px;overflow-wrap:anywhere}
+#editor .event-text a:hover,.description-links a:hover{color:#174d77;text-decoration-color:currentColor}
+.description-links{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:8px;padding:8px 10px;background:#f4f8fc;border:1px solid #dce7f2;border-radius:8px;min-width:0}
+.description-links-label{font-size:.72rem;color:#6a7f94;flex-basis:100%}
+.description-links a{font-size:.8rem;max-width:100%;line-height:1.5}
