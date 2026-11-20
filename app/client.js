@@ -91,7 +91,7 @@ function row(event, team=false) {
       (event.responsible ? '<small>Conduzione: '+escape(event.responsible)+'</small>' : '')+
       statusBadge(event.status)
     : '';
-  return '<button type="button" class="event-row" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
+  return '<button type="button" class="event-row" data-color="'+eventColor(event)+'" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
     '<span class="row-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>';
 }
 
@@ -145,7 +145,7 @@ function renderPrep(list) {
   const total = cards.reduce((sum,item)=>sum+item.tasks.length,0);
   const tracked = cards.filter(({event,tasks})=>!closed(event) && (tasks.length || event.status!=='Pronto')).length;
   $('prep').innerHTML = '<div class="panel-head"><div><h2>Attività da preparare</h2><p class="muted">'+total+' attività aperte · '+tracked+' appuntamenti da seguire</p></div></div>'+
-    (cards.length ? '<div class="prep-list">'+cards.slice((listPage-1)*pageSize,listPage*pageSize).map(({event,tasks})=>'<article class="prep-card" data-status="'+escape(event.status)+'">'+
+    (cards.length ? '<div class="prep-list">'+cards.slice((listPage-1)*pageSize,listPage*pageSize).map(({event,tasks})=>'<article class="prep-card" data-color="'+eventColor(event)+'" data-status="'+escape(event.status)+'">'+
       (event.status==='Annullato'?'<span class="prep-cancelled" aria-hidden="true">×</span>':'')+eventButton(event,event.title)+
       '<p class="muted">'+escape(dateLabel(event)+' · '+event.status+(event.responsible?' · '+event.responsible:''))+'</p>'+
       (tasks.length?'<ul>'+tasks.map(task=>'<li>'+escape(task.label)+'</li>').join('')+'</ul>':'')+'</article>').join('')+'</div>' : empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
