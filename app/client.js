@@ -85,13 +85,13 @@ const statusBadge = status => status
 function row(event, team=false) {
   const day = event.date ? Number(event.date.slice(8)) : '–';
   const label = event.date ? format(event.date,{month:'short'}) : 'Data';
-  const notes = (team ? [dateLabel(event),event.time] : [event.time,event.speaker]).filter(Boolean).join(' · ');
+  const notes = (team ? [dateLabel(event)] : [event.time,event.speaker]).filter(Boolean).join(' · ');
   const extra = team
-    ? (event.speaker ? '<small>Relatore: '+escape(event.speaker)+'</small>' : '')+
-      (event.responsible ? '<small>Conduzione: '+escape(event.responsible)+'</small>' : '')+
+    ? (event.responsible ? '<small>Conduzione: '+escape(event.responsible)+'</small>' : '')+
+      (event.speaker ? '<small>Relatore: '+escape(event.speaker)+'</small>' : '')+
       statusBadge(event.status)
     : '';
-  return '<button type="button" class="event-row" data-color="'+eventColor(event)+'" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+'</span>'+
+  return '<button type="button" class="event-row" data-color="'+eventColor(event)+'" data-event="'+escape(event.id)+'"><span class="date-tile" aria-hidden="'+(!team)+'"><strong>'+day+'</strong>'+escape(label)+(team && event.time?'<span class="date-tile-time">'+escape(event.time)+'</span>':'')+'</span>'+
     '<span class="row-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span><strong>'+escape(event.title)+'</strong>'+(notes?'<small>'+escape(notes)+'</small>':'')+extra+'</span><svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>';
 }
 
@@ -253,7 +253,7 @@ function updateDescriptionLinks() {
 }
 
 function renderTeam(list) {
-  $('team').innerHTML = '<div class="panel-head"><div><p class="muted">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
+  $('team').innerHTML = '<div class="panel-head"><div><p class="muted programme-summary">'+list.length+' appuntamenti · Christliche Gemeinde Ruchheim</p></div>'+
     '<div class="team-actions"><details class="team-sharing"><summary class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Condividi <svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="team-sharing-options"><button type="button" class="plain" id="share-team"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10l-7-7Zm0 0v7h7M8 14h8m-8 3h5"/></svg>Condividi PDF</button><button type="button" class="plain" id="copy-link"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2m2 6a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2"/></svg>Copia link</button><button type="button" class="plain" id="print"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-3"/><path d="M7 14h10v7H7z"/></svg>Stampa / PDF</button></div></details></div></div>'+
     (list.slice((listPage-1)*pageSize,listPage*pageSize).map(event=>row(event,true)).join('') || empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
   const sharing = $('team').querySelector('.team-sharing');
