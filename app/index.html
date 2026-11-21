@@ -62,6 +62,7 @@
         <div class="panel admin-menu-items">
           <button type="button" class="plain" id="manage-users"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-16a3 3 0 0 1 0 6m1 4a5 5 0 0 1 4 5v1"/></svg>Utenti</button>
           <button type="button" class="plain" id="open-series"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 2 4 4-4 4M4 11V9a3 3 0 0 1 3-3h13M8 22l-4-4 4-4m12-1v2a3 3 0 0 1-3 3H4"/></svg>Eventi ricorrenti</button>
+          <button type="button" class="plain" id="open-backup"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0M12 10v9m-3-3 3 3 3-3"/></svg>Backup database</button>
           <button type="button" class="plain" id="open-system"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/><rect x="2" y="2" width="20" height="20" rx="4"/></svg>Stato sistema</button>
           <button type="button" class="plain" id="open-activity"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h4"/></svg>Registro attività</button>
         </div>
@@ -279,6 +280,24 @@
   <div class="account-content"><div class="system-toolbar"><p class="muted">Monitoraggio e manutenzione</p><button type="button" class="plain" id="system-refresh">↻ Aggiorna</button></div>
   
   <p id="system-message" role="status" aria-live="polite"></p><div id="system-content"></div><div id="system-mail-actions" class="system-panel-actions"><button type="button" id="open-mail-history" class="primary action-with-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Apri storico<svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div></div>
+</dialog>
+<dialog id="backup-dialog" aria-labelledby="backup-title">
+ <div class="dialog-head"><h2 id="backup-title">Backup database</h2><form method="dialog"><button class="square" aria-label="Chiudi">×</button></form></div>
+ <div class="account-content backup-content">
+  <section class="backup-intro"><span class="backup-icon"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0M12 10v9m-3-3 3 3 3-3"/></svg></span><div><h3>Una copia completa, sul tuo dispositivo</h3><p>Esportazione SQL nativa Cloudflare D1: struttura delle tabelle e tutti i dati, inclusi utenti, eventi, cronologia e contenuto degli allegati.</p></div></section>
+  <div class="backup-scope"><span>Schema e indici</span><span>Dati e account</span><span>File allegati</span><span>Serie e cronologia</span></div>
+  <section class="backup-action"><div><strong>Backup manuale</strong><span id="backup-state" class="backup-state" data-state="setup">Verifica configurazione</span></div><p>L’esportazione può rendere brevemente indisponibile il database. Avviala in un momento tranquillo.</p>
+   <button type="button" id="backup-download" class="primary action-with-icon" disabled><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0M12 10v9m-3-3 3 3 3-3"/></svg><span id="backup-download-label">Crea e scarica backup SQL</span></button>
+   <p id="backup-message" role="status" aria-live="polite"></p>
+  </section>
+  <details id="backup-setup" class="backup-help"><summary>Configurazione del download</summary><p>Nel Worker <strong>agenda-ruchheim-api</strong>, apri <strong>Settings → Variables and Secrets</strong> e aggiungi:</p>
+   <dl><div><dt>BACKUP_ACCOUNT_ID</dt><dd>ID dell’account Cloudflare proprietario del database.</dd></div><div><dt>BACKUP_API_TOKEN <small>Secret</small></dt><dd>Token API dedicato con i permessi D1 necessari all’esportazione, limitato all’account interessato. Non inserirlo nel codice o nella chat.</dd></div></dl>
+   <div class="system-links"><a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">Apri Cloudflare ↗</a><a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer">Gestisci token API ↗</a></div>
+  </details>
+  <details class="backup-help"><summary>Ripristino e protezione dei dati</summary><p>Conserva il file SQL in una posizione protetta: contiene anche dati degli account. Per un ripristino verifica prima l’importazione su un database di prova tramite Cloudflare o Wrangler.</p><p>Il backup del database non include il codice dell’app e i segreti del Worker, come <strong>PASSWORD_PEPPER</strong>: conservali separatamente per poter ripristinare anche gli accessi.</p>
+   <div class="system-links"><a href="https://developers.cloudflare.com/d1/reference/time-travel/" target="_blank" rel="noopener noreferrer">Ripristino Time Travel ↗</a><a href="https://developers.cloudflare.com/d1/best-practices/import-export-data/" target="_blank" rel="noopener noreferrer">Importazione ed esportazione ↗</a></div>
+  </details>
+ </div>
 </dialog>
 </body>
 </html>

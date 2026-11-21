@@ -1477,3 +1477,54 @@ async function load() {
 load();
 
 initSystemStatus();
+
+let backupBusy=false;
+$('open-backup').onclick=async()=>{
+  if(!isAdmin()) return;
+  $('admin-menu').open=false;
+  $('backup-dialog').showModal();
+  if(backupBusy) return;
+  $('backup-download').disabled=true;
+  $('backup-message').textContent='Verifica configurazione…';
+  try {
+    const data=await jsonApi('/api/backups');
+    $('backup-download').disabled=!data.configured;
+    $('backup-setup').open=!data.configured;
+    $('backup-state').textContent=data.configured?'Pronto per esportare':'Configurazione richiesta';
+    $('backup-state').dataset.state=data.configured?'ready':'setup';
+    $('backup-message').textContent=data.configured?'':'Per attivare il download configura le due impostazioni indicate sotto.';
+  } catch(error) {
+    $('backup-state').textContent='Non disponibile';
+    $('backup-message').textContent=error.message;
+    $('backup-setup').open=true;
+  }
+};
+$('backup-download').onclick=async()=>{
+  if(!isAdmin() || backupBusy) return;
+  backupBusy=true;
+  $('backup-download').disabled=true;
+  $('backup-download-label').textContent='Preparazione in corso…';
+  $('backup-message').textContent='Cloudflare sta creando il backup completo. Mantieni aperta questa pagina.';
+  try {
+    const response=await apiFetch('/api/backups',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    if(!response.ok) {
+      const error=await response.json();
+      throw new Error(error.error || 'Backup non riuscito.');
+    }
+    if(!response.headers.get('Content-Type')?.startsWith('application/sql')) throw new Error('Il servizio non ha restituito un backup SQL valido.');
+    const blob=await response.blob();
+    if(!blob.size) throw new Error('Il file del backup è vuoto.');
+    const filename=response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] ||
+      'agenda-ruchheim-backup-'+new Date().toISOString().slice(0,10)+'.sql';
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;link.download=filename;link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    $('backup-message').textContent='Backup creato. Download avviato; controlla i download del browser.';
+  } catch(error) {
+    $('backup-message').textContent=error.message;
+  } finally {
+    backupBusy=false;$('backup-download').disabled=false;
+    $('backup-download-label').textContent='Crea e scarica backup SQL';
+  }
+};

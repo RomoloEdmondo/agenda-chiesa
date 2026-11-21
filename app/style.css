@@ -1284,3 +1284,33 @@ dialog::backdrop{background:rgba(24,43,61,.55);-webkit-backdrop-filter:blur(3px)
 @media screen and (max-width:760px),screen and (max-width:1100px) and (hover:none) and (pointer:coarse){
  .calendar .chip[data-color]{-webkit-line-clamp:2;line-clamp:2;max-height:calc(2.4em + 6px)}
 }
+
+#admin-menu #open-backup{--menu-accent:#4f78a5;--menu-soft:#eaf2fc}
+#backup-dialog{width:min(690px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:hidden}
+#backup-dialog[open]{display:flex;flex-direction:column}
+#backup-dialog .account-content{overflow:auto;min-height:0;overscroll-behavior:contain}
+.backup-intro{display:flex;gap:12px;align-items:flex-start}
+.backup-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:12px;background:#e8f1fc;color:#3f6f9d}
+.backup-icon .action-icon{width:24px;height:24px}
+.backup-intro h3{font-size:1rem;margin-bottom:5px;color:#294a69}
+.backup-intro p,.backup-action p,.backup-help p,.backup-help dd{font-size:.8rem;line-height:1.55;color:#62798e}
+.backup-scope{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.backup-scope span{padding:4px 8px;border-radius:6px;font-size:.73rem;background:#f0f5fa;color:#507392}
+.backup-action{padding:15px;border:1px solid #d3e1f0;border-radius:12px;background:linear-gradient(120deg,#f0f6fd,#fbfdff)}
+.backup-action>div{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.backup-action strong{font-size:.88rem;color:#2d4a65}
+.backup-state{font-size:.71rem;background:#fbf3df;color:#896c28;border-radius:99px;padding:4px 8px}
+.backup-state[data-state=ready]{background:#e5f3ea;color:#367452}
+#backup-download{margin-top:12px;justify-content:center}
+#backup-download>.action-icon{width:18px;height:18px;flex:none}
+#backup-message{margin-top:10px;font-size:.78rem}
+#backup-message:empty{display:none}
+.backup-help{border-top:1px solid #e1e8f0;padding-top:13px;margin-top:15px}
+.backup-help summary{font-size:.83rem;font-weight:650;color:#436785;cursor:pointer}
+.backup-help p{margin-top:9px}
+.backup-help dl{margin-block:10px}
+.backup-help dl>div{padding:8px 0}
+.backup-help dt{font-family:ui-monospace,Consolas,monospace;font-size:.78rem;color:#365674}
+.backup-help dt small{font-family:inherit;color:#8c6532}
+.backup-help dd{margin:4px 0 0}
+@media(max-width:600px){#backup-download{width:100%}.backup-intro{gap:9px}.backup-icon{width:36px;height:36px}}
