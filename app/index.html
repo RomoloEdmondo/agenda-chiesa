@@ -211,7 +211,7 @@
         <label>Tipo evento<input name="type" list="series-types" maxlength="100" required><datalist id="series-types"></datalist></label>
         <label>Colore<select name="color" id="series-color"></select></label>
         <label>Giorno della settimana<select name="weekday" id="series-weekday" required></select></label>
-        <div class="series-time-fields"><label>Ora inizio<input type="time" name="time"></label><label>Ora fine <span class="optional-label">facoltativa</span><input type="time" name="endTime"></label></div>
+        <div class="series-time-fields"><label><span class="series-time-label">Ora inizio</span><input type="time" name="time"></label><label><span class="series-time-label">Ora fine <span class="optional-label" title="Campo facoltativo">opz.</span></span><input type="time" name="endTime" aria-label="Ora fine (facoltativa)"></label></div>
         <label>Da<input type="date" name="starts" required></label>
         <label>Fino al<input type="date" name="until" required></label>
         <label>Guida/Conduzione<input name="responsible" maxlength="160"></label>

@@ -71,13 +71,25 @@ export function initSystemStatus() {
             ['Secret nel Worker','CHURCHTOOLS_API_TOKEN']])+
           '<div class="system-links"><a href="https://cg-ruchheim.church.tools/" target="_blank" rel="noopener noreferrer">Apri ChurchTools ↗</a><a href="https://cg-ruchheim.church.tools/api" target="_blank" rel="noopener noreferrer">Documentazione API ↗</a></div></details>')+
         panel('mail','Email e promemoria','Coda invii, esiti e consultazione dello storico',
+          '<div class="system-service-summary"><span class="system-service-state" data-state="'+(data.mail?.configured?'ok':'warning')+'">'+(data.mail?.configured?'Configurazione valida':'Da verificare')+'</span><span>'+escape(data.mail?.provider || 'Google Apps Script')+'</span></div>'+
           '<div class="system-mail-counters">'+[
             ['In attesa',m.mail?.pending,'neutral'],['In invio',m.mail?.sending,'blue'],
             ['Fallite / incerte',m.mail?.failed,m.mail?.failed>0?'red':'neutral'],
             ['In ritardo',m.mail?.overdue,m.mail?.overdue>0?'amber':'neutral']
           ].map(([label,value,tone])=>'<div data-tone="'+tone+'"><span>'+escape(label)+'</span><strong>'+number(value)+'</strong></div>').join('')+'</div>'+
           '<p class="system-mail-last">Ultimo invio riuscito <strong>'+escape(timestamp(m.mail?.lastSent))+'</strong></p>'+
-          '<p class="system-mail-hint">Il ritardo indica invii in attesa da oltre 15 minuti. Lo storico include filtri per data, stato e utente.</p>',
+          facts([['Prossimo invio',timestamp(m.mail?.nextDue)],['Inviate nello storico',number(m.mail?.sent)],
+            ['Ultimo errore / esito incerto',timestamp(m.mail?.lastFailure)],['Promemoria','Cron '+(data.backend.cron || '*/5 * * * *')]])+
+          (data.mail?.issue?'<p class="system-mail-alert">'+escape(data.mail.issue)+'</p>':'')+
+          '<details class="system-technical"><summary>API email e configurazione</summary>'+facts([
+            ['API applicazione','POST '+API_BASE+'/api/mail'],['Storico','GET '+API_BASE+'/api/mail?view=history'],
+            ['Web App Google',data.mail?.endpoint],['Trasporto',data.mail?.transport || 'POST JSON · HTTPS'],
+            ['Autenticazione',data.mail?.secretConfigured?'Secret condiviso configurato':'Secret da configurare'],
+            ['Secret Worker','AGENDA_MAIL_URL · AGENDA_MAIL_SECRET'],['Invii per ciclo',number(data.mail?.batchSize)],
+            ['Conservazione esiti',number(data.mail?.retentionDays)+' giorni'],['Invio incerto dopo',number(data.mail?.staleMinutes)+' minuti'],
+            ['Programmazione massima',number(data.mail?.scheduleMaxDays)+' giorni']])+
+          '<div class="system-links"><a href="https://script.google.com/home" target="_blank" rel="noopener noreferrer">Gestisci Apps Script ↗</a></div>'+
+          '<p class="system-mail-hint">Mittente, autorizzazioni Google, quote e log di esecuzione si consultano nel progetto Apps Script. La configurazione valida non conferma la consegna di una singola email.</p></details>',
           'system-mail-panel')+
         panel('tools','Manutenzione','Pannelli e strumenti esterni',
           '<div class="system-links">'+
