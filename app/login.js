@@ -1,5 +1,8 @@
+import {initDialogScrollLock} from './dialog-scroll-lock.js';
 import {notice} from './toast.js';
 import {currentToken,setSession,jsonApi} from './session.js';
+
+initDialogScrollLock();
 
 const $ = id => document.getElementById(id);
 const form = $('login-form');
@@ -476,3 +479,4 @@ if (mode==='login' && !$('login-shell').hidden) {
   try { $('setup-toggle').hidden=!(await jsonApi('/api/setup')).setup; }
   catch(error) { $('login-message').textContent=error.message; }
 }
+

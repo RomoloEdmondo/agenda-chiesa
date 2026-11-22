@@ -1424,3 +1424,41 @@ dialog::backdrop{background:rgba(24,43,61,.55);-webkit-backdrop-filter:blur(3px)
 #system-dialog .system-detail-grid{align-items:stretch}
 #system-dialog .system-detail-panel{display:flex;flex-direction:column}
 #system-dialog .system-panel-mail .system-panel-actions{margin-top:auto;padding-top:14px}
+
+
+/* Dialog content consumes its own scroll; the shared controller locks the page. */
+dialog,dialog .account-content,dialog #details,dialog .ct-preview,dialog .attachment-preview{overscroll-behavior:contain}
+dialog .account-content,dialog #details{-webkit-overflow-scrolling:touch}
+
+/* Backup: compact data scope, a clear primary action and quiet technical panels. */
+#backup-dialog .dialog-head{background:linear-gradient(115deg,#edf5fc,#f9fbfd);border-bottom-color:#d5e3ef;flex-shrink:0}
+#backup-dialog .backup-content{padding-top:17px;background:linear-gradient(145deg,#f7fafe,#fff 55%)}
+#backup-dialog .backup-intro{gap:12px;align-items:center}
+#backup-dialog .backup-icon{width:43px;height:43px;border-radius:12px;border:1px solid #d2e4f4;background:linear-gradient(145deg,#e3effb,#f0f6fc);box-shadow:inset 0 1px #fff,0 3px 8px #315c7d0b}
+#backup-dialog .backup-intro h3{font-size:.95rem;font-weight:750;letter-spacing:-.015em;line-height:1.3;margin-bottom:5px;color:#2e4e6a}
+#backup-dialog .backup-intro p{font-size:.76rem;line-height:1.55;color:#73879b}
+#backup-dialog .backup-scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:14px 0}
+#backup-dialog .backup-scope>span{display:flex;align-items:center;gap:7px;padding:6px 9px;background:#eef4f9;border:1px solid #e1eaf2;border-radius:8px;font-size:.72rem;color:#5a758d}
+#backup-dialog .backup-scope svg{width:14px;height:14px;flex:none;color:#528a78}
+#backup-dialog .backup-action{position:relative;padding:16px;border:1px solid #c8ddef;border-radius:13px;background:linear-gradient(120deg,#eaf3fd,#f7fbfe);box-shadow:0 4px 13px #3156740b,inset 0 1px #fff}
+#backup-dialog .backup-action strong{font-size:.87rem;letter-spacing:-.01em}
+#backup-dialog .backup-action>p{font-size:.75rem;line-height:1.55;color:#6e8397}
+#backup-dialog .backup-state{display:inline-flex;align-items:center;gap:5px;font-size:.66rem;font-weight:600;line-height:1.4;padding:4px 8px;border:1px solid #ebddba;background:#fff7e6}
+#backup-dialog .backup-state::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
+#backup-dialog .backup-state[data-state=ready]{border-color:#c4e2cf;background:#e8f5ec;color:#3f7a58}
+#backup-dialog #backup-download{width:100%;min-height:40px;gap:8px;font-size:.83rem;border-radius:10px;box-shadow:0 3px 9px #2f648b26,inset 0 1px #ffffff30}
+#backup-dialog #backup-download:focus-visible{outline:3px solid #7ca7ca77;outline-offset:3px}
+#backup-dialog #backup-message{padding:8px 10px;border-radius:8px;border:1px solid #d1e0ed;background:#ffffffa6;color:#536f87}
+#backup-dialog .backup-help{margin-top:10px;padding:0 12px;border:1px solid #dce6ef;border-radius:10px;background:#ffffffb3;box-shadow:0 1px 4px #29465e04}
+#backup-dialog .backup-help[open]{background:#f9fbfd;padding-bottom:12px;border-color:#cbddeb}
+#backup-dialog .backup-help summary{display:flex;align-items:center;gap:8px;list-style:none;padding:12px 0;font-size:.77rem;font-weight:650;color:#536f88;line-height:1.4}
+#backup-dialog .backup-help summary::-webkit-details-marker{display:none}
+#backup-dialog .backup-help summary>svg{width:17px;height:17px;color:#7590a7;flex:none}
+#backup-dialog .backup-help summary::after{content:'';width:7px;height:7px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg);margin-left:auto;margin-right:3px;flex:none;transition:transform .15s}
+#backup-dialog .backup-help[open] summary::after{transform:rotate(45deg)}
+#backup-dialog .backup-help p,#backup-dialog .backup-help dd{font-size:.74rem;line-height:1.6}
+#backup-dialog .backup-help dt{font-size:.73rem}
+#backup-dialog .backup-help .system-links a{font-size:.72rem;background:#eef4fa;border-color:#d4e2ee;color:#456e90;border-radius:8px}
+#backup-dialog .backup-help .system-links a:hover{background:#e3edf6;border-color:#b8cfe1}
+@media(max-width:600px){#backup-dialog .backup-content{padding:14px}#backup-dialog .backup-intro{align-items:flex-start;gap:10px}#backup-dialog .backup-intro h3{font-size:.9rem}#backup-dialog .backup-action{padding:13px}#backup-dialog .backup-scope{gap:5px}#backup-dialog .backup-scope>span{font-size:.69rem;padding:6px 7px}#backup-dialog .backup-help summary{font-size:.75rem}}
+@media(prefers-reduced-motion:reduce){#backup-dialog .backup-help summary::after{transition:none}}
