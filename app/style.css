@@ -1462,3 +1462,16 @@ dialog .account-content,dialog #details{-webkit-overflow-scrolling:touch}
 #backup-dialog .backup-help .system-links a:hover{background:#e3edf6;border-color:#b8cfe1}
 @media(max-width:600px){#backup-dialog .backup-content{padding:14px}#backup-dialog .backup-intro{align-items:flex-start;gap:10px}#backup-dialog .backup-intro h3{font-size:.9rem}#backup-dialog .backup-action{padding:13px}#backup-dialog .backup-scope{gap:5px}#backup-dialog .backup-scope>span{font-size:.69rem;padding:6px 7px}#backup-dialog .backup-help summary{font-size:.75rem}}
 @media(prefers-reduced-motion:reduce){#backup-dialog .backup-help summary::after{transition:none}}
+
+/* Mobile preparation uses the available screen width; keep headings inset. */
+@media(max-width:650px){
+  #prep.panel.standalone{width:100vw;max-width:none;margin-inline:calc(50% - 50vw);padding:20px 0;border-inline:0;border-radius:0;box-shadow:none}
+  #prep>.panel-head{padding-inline:16px}
+  #prep>.prep-list{grid-template-columns:minmax(0,1fr);gap:10px}
+  #prep .prep-card{min-width:0;border-inline:0;border-radius:0;padding-inline:16px;box-shadow:none}
+  #prep .prep-card>button{max-width:100%;overflow-wrap:anywhere}
+  #churchtools-dialog .ct-content,#churchtools-dialog .ct-toolbar{min-width:0;max-width:100%}
+  #churchtools-dialog .ct-toolbar>label:first-child{flex:1 1 100%;width:100%;min-width:0;max-width:100%;grid-template-columns:minmax(0,1fr)}
+  #churchtools-dialog .ct-toolbar input[type=month]{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;inline-size:100%;min-inline-size:0;max-inline-size:100%;-webkit-appearance:none;appearance:none}
+  #churchtools-dialog .ct-toolbar input[type=month]::-webkit-date-and-time-value{min-width:0;text-align:left}
+}
