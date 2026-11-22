@@ -1,3 +1,4 @@
+import {initChurchTools} from './churchtools-import.js';
 import {initSystemStatus} from './system-status.js';
 import {agendaPdf,pdfLogoReady} from './agenda-pdf.js';
 import {notice} from './toast.js';
@@ -1528,3 +1529,6 @@ $('backup-download').onclick=async()=>{
     $('backup-download-label').textContent='Crea e scarica backup SQL';
   }
 };
+
+
+initChurchTools({month:()=>month,onSaved:saved=>{events=[...events.filter(e=>e.id!==saved.id),saved];},onFinished:()=>{fillTypes();render();}});
