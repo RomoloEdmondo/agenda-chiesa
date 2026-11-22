@@ -1538,3 +1538,22 @@ dialog .account-content,dialog #details{-webkit-overflow-scrolling:touch}
 #prep-confirm-cancel{background:#edf0f3;border:1px solid #dce3e9;border-radius:9px}
 #prep-confirm-dialog #prep-confirm-save{background:linear-gradient(120deg,#2a7951,#216641);border-color:#246b47;border-radius:9px;font-size:.78rem}
 @media(max-width:480px){#prep-confirm-dialog .dialog-footer{display:grid;grid-template-columns:minmax(0,1fr)}#prep-confirm-save{grid-row:1}#prep-confirm-dialog .dialog-footer button{width:100%;justify-content:center}}
+
+/* Compact preparation cards and share the programme's event palette. */
+#prep .prep-work-list{align-items:start}
+#prep .prep-work-item{padding:13px 16px}
+#prep .date-tile{background:var(--tag-bg,#e7f0fa);color:var(--tag-ink,#285b85);border-color:transparent;box-shadow:inset 0 0 0 1px #2749670a,0 2px 4px #193c6208}
+#prep .prep-work-copy{gap:3px}
+#prep .prep-work-missing{align-self:center;width:fit-content;max-width:100%;margin:8px 0 0;padding:0 0 0 18px;background:none;border:0;border-radius:0;color:#b02c40;font-size:.76rem;line-height:1.6}
+#prep .prep-work-missing li{padding-left:2px}
+#prep .prep-work-tasks{margin-top:8px;padding-top:6px}
+#prep .prep-work-progress{margin-bottom:2px}
+#prep .prep-work-task{padding-block:4px}
+#prep .prep-work-review{margin-top:8px;line-height:1.45}
+#prep .prep-work-actions{margin-top:4px;padding-top:0}
+@media(max-width:650px){
+ #prep .prep-work-item{padding-block:12px}
+ #prep .prep-work-missing{margin-left:0}
+ #prep .prep-work-task{min-height:36px}
+ #prep .prep-work-actions{margin-top:2px}
+}
