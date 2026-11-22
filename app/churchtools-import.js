@@ -5,8 +5,11 @@ const label=date=>new Intl.DateTimeFormat('it-IT',{day:'numeric',month:'short',y
 function details(event){
  return `<h3>${esc(event.title)}</h3><p class="ct-event-date">${esc(label(event.date))}${event.end?' – '+esc(label(event.end)):''}${event.time?' · '+esc([event.time,event.endTime ?? event.churchtools?.endTime].filter(Boolean).join(' – ')):''}</p><dl><dt>Conduzione</dt><dd>${esc(event.responsible||'Non indicata')}</dd><dt>Relatore</dt><dd>${esc(event.speaker||'Non indicato')}</dd><dt>Luogo</dt><dd>${esc(event.place||'Non indicato')}</dd></dl><details><summary>Descrizione</summary><p class="ct-description">${esc(event.description||'Nessuna descrizione')}</p></details>`;
 }
+const buttonIcons={preview:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18m-12 4h6m-6 3h4"/>',import:'<path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/>',keep:'<path d="m5 12 4 4L19 6"/>',stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',retry:'<path d="M20 8a8 8 0 1 0 1 5M20 3v5h-5"/>',skip:'<path d="m5 5 9 7-9 7V5ZM19 5v14"/>'};
+function actionButton(id,kind,label){$(id).innerHTML='<svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+buttonIcons[kind]+'</svg><span>'+esc(label)+'</span>';}
 export function initChurchTools({onSaved,onFinished,month}){
  const dialog=$('churchtools-dialog'),message=$('ct-message');
+ for(const [id,kind] of [['ct-load','preview'],['ct-start','import'],['ct-keep','keep'],['ct-use','import'],['ct-stop','stop'],['ct-retry','retry'],['ct-skip','skip']]) actionButton(id,kind,$(id).textContent);
  let listing=[],queue=[],index=0,current=null,busy=false,running=false,stop=false,counts={};
  const status=text=>{message.textContent=text;};
  const progress=()=>`${index} di ${queue.length} esaminati · ${counts.created||0} importati · ${counts.updated||0} aggiornati · ${counts.kept||0} mantenuti`;
@@ -42,9 +45,9 @@ export function initChurchTools({onSaved,onFinished,month}){
     $('ct-existing').append(card);
    }
    $('ct-local-column').hidden=!current.conflicts.length;
-   $('ct-keep').textContent=current.conflicts.length>1?'Mantieni i miei appuntamenti':'Mantieni il mio evento';
+   actionButton('ct-keep','keep',current.conflicts.length>1?'Mantieni i miei appuntamenti':'Mantieni il mio evento');
    $('ct-skip').hidden=!!current.conflicts.length;
-   $('ct-use').textContent=current.conflicts.length?'Usa l’evento ChurchTools':'Importa comunque';
+   actionButton('ct-use','import',current.conflicts.length?'Usa l’evento ChurchTools':'Importa comunque');
    status(`${index+1} di ${queue.length} · ${current.linkedId?'Già importato: confronto delle modifiche':current.conflicts.length+' appuntamenti presenti'}`);
    controls();$('ct-use').focus();
   }catch(error){busy=false;$('ct-review').hidden=false;$('ct-review-title').textContent='Appuntamento non importato';$('ct-review-info').textContent=entry.core.title+' · '+label(entry.core.date);$('ct-incoming').replaceChildren();$('ct-existing').replaceChildren();$('ct-local-column').hidden=true;$('ct-warnings').hidden=true;$('ct-use').hidden=true;$('ct-retry').hidden=false;$('ct-keep').hidden=false;$('ct-keep').hidden=true;$('ct-skip').hidden=false;$('ct-incoming').parentElement.hidden=true;status(error.message);controls();}
@@ -88,3 +91,4 @@ export function initChurchTools({onSaved,onFinished,month}){
  $('ct-close').onclick=()=>dialog.close();
  dialog.addEventListener('cancel',event=>{if(running||busy){event.preventDefault();status('Per terminare usa Interrompi. Gli appuntamenti già salvati resteranno in agenda.');}});
 }
+

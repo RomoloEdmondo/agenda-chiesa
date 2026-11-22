@@ -136,7 +136,7 @@
         </div>
       </details>
       <div class="editor-actions">
-        <button type="button" class="plain" id="cancel">Chiudi</button>
+        <nav id="event-navigation" class="event-navigation" aria-label="Navigazione eventi" hidden><button type="button" class="event-nav-button" id="event-previous" aria-label="Evento precedente" title="Evento precedente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button type="button" class="event-nav-button" id="event-next" aria-label="Evento successivo" title="Evento successivo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></nav><button type="button" class="plain" id="cancel">Chiudi</button>
         <button class="primary success action-with-icon" id="save"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2Z"/><path d="M7 3v6h9V3M7 21v-8h10v8"/></svg>Salva</button>
       </div>
     </div>
@@ -211,7 +211,7 @@
         <label>Tipo evento<input name="type" list="series-types" maxlength="100" required><datalist id="series-types"></datalist></label>
         <label>Colore<select name="color" id="series-color"></select></label>
         <label>Giorno della settimana<select name="weekday" id="series-weekday" required></select></label>
-        <label>Orario<input type="time" name="time"></label>
+        <div class="series-time-fields"><label>Ora inizio<input type="time" name="time"></label><label>Ora fine <span class="optional-label">facoltativa</span><input type="time" name="endTime"></label></div>
         <label>Da<input type="date" name="starts" required></label>
         <label>Fino al<input type="date" name="until" required></label>
         <label>Guida/Conduzione<input name="responsible" maxlength="160"></label>
@@ -286,7 +286,7 @@
 <dialog id="churchtools-dialog" aria-labelledby="ct-title">
  <div class="dialog-head"><div><span class="ct-eyebrow">INTEGRAZIONI · CHIESA ITALIANA</span><h2 id="ct-title">Importa da ChurchTools</h2></div><button type="button" class="square" id="ct-close" aria-label="Chiudi">×</button></div>
  <div class="account-content ct-content">
-  <p class="muted">Titoli, date, orari e luoghi da ChurchTools. Leitung diventa Conduzione, Predigt diventa Relatore.</p>
+  <p class="ct-intro">Scegli il mese e importa gli appuntamenti della comunità italiana.</p>
   <div class="ct-toolbar"><label>Mese da importare<input type="month" id="ct-month" required></label><label class="ct-checkbox"><input type="checkbox" id="ct-bilingual" checked> Includi eventi bilingui</label><button type="button" class="ct-button ct-button-primary" id="ct-load">Carica anteprima</button></div>
   <p id="ct-message" class="ct-message" role="status" aria-live="polite"></p>
   <label id="ct-select-all" class="ct-checkbox" hidden><input type="checkbox" id="ct-all" checked> Seleziona tutti</label>
@@ -322,4 +322,5 @@
 </dialog>
 </body>
 </html>
+
 

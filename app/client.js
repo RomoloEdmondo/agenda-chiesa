@@ -47,6 +47,8 @@ let view = 'agenda';
 let active;
 let canSave = false;
 let isNewEvent = false;
+let editorReadOnly=true;
+let editorSequence=[];
 
 const option = (value,label=value,selected=false) => '<option value="'+escape(value)+'"'+(selected?' selected':'')+'>'+escape(label)+'</option>';
 const dateLabel = event => event.date
@@ -553,10 +555,13 @@ function openEditor(event, editing=!event, date='') {
   isNewEvent = !event;
   active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date,end:'',time:'',endTime:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
   active={...active,endTime:active.endTime ?? active.churchtools?.endTime ?? ''};
+  editorSequence=sorted(events.filter(matches));
+  if(event && !editorSequence.some(e=>e.id===event.id)) editorSequence=sorted(events);
   renderEditor(editing);
   $('event-title').autofocus = !event && editing && canSave;
   $('close-editor').autofocus = !$('event-title').autofocus;
   $('editor').showModal();
+  requestAnimationFrame(positionEventNavigation);
 }
 
 let releaseAttachmentPreview = () => {};
@@ -690,6 +695,7 @@ function setupAttachments(readOnly) {
 function renderEditor(editing) {
   releaseAttachmentPreview();
   const readOnly = !editing || !canSave;
+  editorReadOnly=readOnly;
   const place = isChurchPlace(active.place) ? churchPlace : active.place;
   const attachments = '<section id="event-attachments" aria-label="Allegati">'+
     (isNewEvent ? '<p class="muted">Salva l’evento per aggiungere allegati.</p>'
@@ -717,6 +723,7 @@ function renderEditor(editing) {
   $('event-sharing').open = false;
   const typeSlot = $('editor-type');
   $('editor').classList.toggle('event-preview',readOnly);
+  updateEventNavigation();
   const fieldIcons = {"date":"<svg class=\"action-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 10h18\"/></svg>","time":"<svg class=\"action-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/></svg>"};
 
   function previewField(key,label) {
@@ -1063,9 +1070,16 @@ for(const prefix of ['activity','mail-history']){
   form.onreset=()=>queueMicrotask(reload);
 }
 
+const iconPaths={edit:'<path d="m15 5 4 4M4 20l4.5-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z"/>',trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/>',plus:'<path d="M12 5v14M5 12h14"/>',save:'<path d="m5 12 4 4L19 6"/>',cancel:'<path d="m6 6 12 12M6 18 18 6"/>'};
+const actionIcon=kind=>'<svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+iconPaths[kind]+'</svg>';
 const weekdays = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
 const seriesForm = $('series-form');
 const seriesMessage = $('series-message');
+$('new-series').innerHTML=actionIcon('plus')+'<span>Nuova serie</span>';
+$('cancel-series').innerHTML=actionIcon('cancel')+'<span>Annulla</span>';
+seriesForm.querySelector('[type=submit]').innerHTML=actionIcon('save')+'<span>Salva serie</span>';
+const syncSeriesEndTime=()=>{seriesForm.elements.endTime.min=seriesForm.elements.time.value;};
+seriesForm.elements.time.addEventListener('input',syncSeriesEndTime);
 let currentSeries;
 let seriesBusy = false;
 
@@ -1090,6 +1104,7 @@ function editSeries(series) {
     seriesForm.elements.starts.value = today;
     seriesForm.elements.weekday.value = String(new Date(today+'T12:00:00Z').getUTCDay());
   }
+  syncSeriesEndTime();
   mountColorChoices(seriesForm);
   seriesForm.hidden = false;
   seriesForm.elements.title.focus();
@@ -1104,16 +1119,16 @@ async function refreshSeries() {
     const title = document.createElement('strong');
     title.textContent = rule.title;
     const meta = document.createElement('small');
-    meta.textContent = weekdays[rule.weekday]+(rule.time ? ' · '+rule.time : '')+' · '+format(rule.starts,{dateStyle:'short'})+' – '+format(rule.until,{dateStyle:'short'});
+    meta.textContent = weekdays[rule.weekday]+(rule.time ? ' · '+eventTime(rule) : '')+' · '+format(rule.starts,{dateStyle:'short'})+' – '+format(rule.until,{dateStyle:'short'});
     const edit = document.createElement('button');
     edit.type = 'button';
     edit.className = 'plain';
-    edit.textContent = 'Modifica';
+    edit.innerHTML = actionIcon('edit')+'<span>Modifica</span>';
     edit.onclick = () => { if (!seriesBusy) editSeries(rule); };
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'danger-outline';
-    remove.textContent = 'Elimina';
+    remove.innerHTML = actionIcon('trash')+'<span>Elimina</span>';
     remove.onclick = () => {
       if (seriesBusy || !confirm('Eliminare la serie «'+rule.title+'» e tutte le sue occorrenze, comprese le modifiche e gli allegati?')) return;
       saveSeries({id:rule.id,revision:rule.revision,action:'delete'},'Serie eliminata.');
@@ -1409,6 +1424,57 @@ bindCalendarSwipe($('days'));
 $('more').onclick = () => { showAll=!showAll; render(); };
 $('new-event').disabled = true;
 $('new-event').onclick = () => openEditor();
+
+function updateEventNavigation(){
+  const nav=$('event-navigation');
+  nav.hidden=!editorReadOnly || isNewEvent;
+  const index=editorSequence.findIndex(e=>e.id===active?.id);
+  $('event-previous').disabled=index<=0;
+  $('event-next').disabled=index<0 || index>=editorSequence.length-1;
+}
+function positionEventNavigation(){
+  if(!$('editor').open || $('event-navigation').hidden) return;
+  const rect=$('editor').getBoundingClientRect();
+  const nav=$('event-navigation');
+  nav.style.setProperty('--event-nav-y',Math.round(rect.top+rect.height/2)+'px');
+  nav.style.setProperty('--event-nav-left',Math.max(8,rect.left-54)+'px');
+  nav.style.setProperty('--event-nav-right',Math.min(window.innerWidth-48,rect.right+10)+'px');
+}
+function navigateEvent(direction){
+  if(!editorReadOnly || isNewEvent || !$('editor').open) return;
+  const index=editorSequence.findIndex(e=>e.id===active?.id);
+  const next=editorSequence[index+direction];
+  if(index<0 || !next) return;
+  active=events.find(e=>e.id===next.id)||next;
+  active={...active,endTime:active.endTime ?? active.churchtools?.endTime ?? ''};
+  renderEditor(false);
+  $('editor').scrollTop=0;
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches && $('details').animate) $('details').animate([{opacity:.35,transform:'translateX('+direction*12+'px)'},{opacity:1,transform:'translateX(0)'}],{duration:180,easing:'ease-out'});
+  positionEventNavigation();
+}
+$('event-previous').onclick=()=>navigateEvent(-1);
+$('event-next').onclick=()=>navigateEvent(1);
+window.addEventListener('resize',positionEventNavigation);
+$('editor').addEventListener('scroll',positionEventNavigation,{passive:true});
+const eventInteractive=target=>target.closest('input,textarea,select,button,a,summary,[contenteditable],.attachment-preview');
+$('editor').addEventListener('keydown',event=>{
+ if(!editorReadOnly || eventInteractive(event.target) || event.altKey || event.ctrlKey || event.metaKey) return;
+ if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();navigateEvent(event.key==='ArrowLeft'?-1:1);}
+});
+let eventTouch;
+$('details').addEventListener('touchstart',event=>{
+ eventTouch=null;
+ if(!editorReadOnly || event.touches.length!==1 || eventInteractive(event.target) || window.getSelection()?.toString()) return;
+ const touch=event.touches[0];eventTouch={x:touch.clientX,y:touch.clientY,at:Date.now()};
+},{passive:true});
+$('details').addEventListener('touchcancel',()=>{eventTouch=null;},{passive:true});
+$('details').addEventListener('touchend',event=>{
+ const start=eventTouch;eventTouch=null;
+ if(!start || !editorReadOnly || event.changedTouches.length!==1 || window.getSelection()?.toString()) return;
+ const touch=event.changedTouches[0],dx=touch.clientX-start.x,dy=touch.clientY-start.y;
+ if(Math.abs(dx)>=70 && Math.abs(dx)>Math.abs(dy)*1.6 && Date.now()-start.at<800) navigateEvent(dx<0?1:-1);
+},{passive:true});
+
 $('close-editor').onclick = $('cancel').onclick = () => { if (!$('save').disabled) $('editor').close(); };
 $('editor').addEventListener('cancel',event=>{ if ($('save').disabled) event.preventDefault(); });
 $('edit-event').onclick = () => {
@@ -1545,3 +1611,4 @@ $('backup-download').onclick=async()=>{
 
 
 initChurchTools({month:()=>month,onSaved:saved=>{events=[...events.filter(e=>e.id!==saved.id),saved];},onFinished:()=>{fillTypes();render();}});
+
