@@ -149,7 +149,7 @@ function preparationWork(event) {
   const missing = [];
   if (event.status!=='Pronto') {
     if (!event.responsible?.trim()) missing.push('Conduzione da assegnare');
-    if (/culto|studio|seminario|convegno|riunione marted/i.test(event.type+' '+event.title) && !event.speaker?.trim())
+    if (!event.speaker?.trim())
       missing.push('Relatore da assegnare');
   }
   return {event,tasks,missing};
