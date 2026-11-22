@@ -53,6 +53,7 @@ const dateLabel = event => event.date
   ? format(event.date,{day:'numeric',month:'short',year:'numeric'}) +
     (event.end && event.end !== event.date ? ' – '+format(event.end,{day:'numeric',month:'short',year:'numeric'}) : '')
   : 'Data da confermare';
+const eventTime = event => [event.time,event.endTime ?? event.churchtools?.endTime].filter(Boolean).join(' – ');
 const sorted = list => [...list].sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999') ||
   a.time.localeCompare(b.time) || a.title.localeCompare(b.title,'it'));
 const empty = message => '<p class="empty">'+escape(message)+'</p>';
@@ -159,7 +160,7 @@ async function copyAgendaLink(url) {
 
 function pdfEvent(event) {
   return {title:event.title,fields:[
-    ['Tipo evento',event.type],['Data',dateLabel(event)],['Orario',event.time],
+    ['Tipo evento',event.type],['Data',dateLabel(event)],['Orario',eventTime(event)],
     ['Luogo',event.place || churchPlace],['Stato preparazione',event.status],
     ['Guida/Conduzione',event.responsible],['Relatore',event.speaker],
     ['Descrizione',event.description],['Materiali e link',event.materials],
@@ -550,7 +551,8 @@ const churchMap = 'https://www.google.com/maps/search/?api=1&query='+encodeURICo
 
 function openEditor(event, editing=!event, date='') {
   isNewEvent = !event;
-  active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date,end:'',time:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
+  active = event || {id:crypto.randomUUID(),revision:0,title:'',type:'',status:'Da preparare',date,end:'',time:'',endTime:'',place:'',speaker:'',responsible:'',description:'',materials:'',tasks:[{label:'Definire i responsabili',done:false}]};
+  active={...active,endTime:active.endTime ?? active.churchtools?.endTime ?? ''};
   renderEditor(editing);
   $('event-title').autofocus = !event && editing && canSave;
   $('close-editor').autofocus = !$('event-title').autofocus;
@@ -695,6 +697,13 @@ function renderEditor(editing) {
     '<p class="muted" role="status"></p><ul></ul><div class="attachment-preview"></div></section>';
   $('edit-event').hidden = !readOnly || !canSave;
   $('editor-label').textContent = active.title ? 'Scheda evento' : 'Nuovo evento';
+  const importMark=$('event-import-mark');
+  importMark.hidden=!active.churchtools;
+  const importedAt=active.churchtools?.importedAt;
+  const importedDate=importedAt ? new Date(importedAt) : null;
+  const importTip=importedDate && Number.isFinite(importedDate.getTime()) ? 'Importato da ChurchTools il '+new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Berlin'}).format(importedDate) : 'Importato da ChurchTools';
+  importMark.dataset.tooltip=importTip;
+  importMark.setAttribute('aria-label',importTip);
   $('edit-title').textContent = active.title || 'Nuovo evento';
   $('edit-title').hidden = !readOnly;
   const title = $('event-title');
@@ -717,7 +726,7 @@ function renderEditor(editing) {
         '<p class="event-text">'+(linkedDescription(active.description) || 'Nessuna descrizione.')+'</p></details>';
     }
     if (key==='end' && !value) return '';
-    let display = key==='status' ? statusBadge(active.status) : value;
+    let display = key==='status' ? statusBadge(active.status) : key==='time' ? escape(eventTime(active)) : value;
     if (key==='type') display = '<span class="row-type" data-color="'+eventColor(active)+'">'+value+'</span>';
     if (['date','end'].includes(key) && value) {
       display = escape(format(active[key],{day:'2-digit',month:'2-digit',year:'numeric'}));
@@ -737,7 +746,7 @@ function renderEditor(editing) {
       return '<label><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Data</span><input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
     }
     if (key==='time') {
-      return '<label><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Orario</span><input type="time" name="time" value="'+value+'"></label>';
+      return '<div class="event-time-field"><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Orario</span><div class="event-time-inputs"><input type="time" name="time" aria-label="Ora di inizio" title="Ora di inizio" value="'+value+'"><span aria-hidden="true">–</span><input type="time" name="endTime" aria-label="Ora di fine" title="Ora di fine (facoltativa)" value="'+escape(active.endTime)+'"></div></div>';
     }
     if (key==='end') {
       return '<details class="event-end"'+(active.end?' open':'')+'><summary>Data fine</summary><label class="event-end-input">'+
@@ -775,12 +784,12 @@ function renderEditor(editing) {
   const field = key => renderField(fields.find(([name])=>name===key));
   typeSlot.innerHTML = field('type');
   $('details').innerHTML = '<div class="editor-overview">'+
-    '<section class="editor-card editor-program-card"><h3>Programma</h3><div class="fields">'+
+    '<section class="editor-card editor-program-card" aria-label="Date e preparazione"><div class="fields">'+
     '<div class="event-schedule wide">'+['date','time','status'].map(field).join('')+'</div>'+
     '<div class="event-options wide">'+field('end')+field('place')+'</div>'+
     (!readOnly && active.seriesId ? '<label class="wide">Colore dell’occorrenza<select name="color">'+
       option('','Colore del tipo',!active.color)+colorOptions(active.color)+'</select></label>' : '')+
-    '</div></section><section class="editor-card editor-people-card"><h3 class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/></svg>Persone</h3><div class="editor-people">'+
+    '</div></section><section class="editor-card editor-people-card" aria-label="Responsabili e relatore"><div class="editor-people">'+
     ['responsible','speaker'].map(field).join('')+'</div></section></div>'+
     '<div class="editor-notes">'+field('description')+
     '<details class="event-materials wide"><summary>File</summary>'+attachments+'</details></div>'+
@@ -805,9 +814,13 @@ function renderEditor(editing) {
       placeInput.hidden = false;
       placeInput.focus();
     };
-    const {date,end,status} = $('event-form').elements;
+    const {date,end,status,time,endTime} = $('event-form').elements;
+    const syncEndTime=()=>{endTime.min=(!end.value || end.value===date.value)?time.value:'';};
+    time.addEventListener('input',syncEndTime);
+    end.addEventListener('change',syncEndTime);
+    syncEndTime();
     status.addEventListener('change',()=>{ status.dataset.status = status.value; });
-    date.onchange = () => { end.min = date.value || '0001-01-01'; };
+    date.onchange = () => { end.min = date.value || '0001-01-01'; syncEndTime(); };
     end.oninvalid = () => { end.closest('details').open = true; };
     $('event-form').querySelectorAll('.event-choice').forEach(choice=>{
       const input = choice.querySelector('input');
