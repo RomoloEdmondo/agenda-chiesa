@@ -171,7 +171,8 @@ function renderPrep(list) {
         '<div class="prep-work-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span>'+
         eventButton(event,event.title,'plain prep-work-title')+
         '<p class="muted">'+escape(dateLabel(event))+'</p>'+statusBadge(event.status)+
-        (event.responsible?'<p class="prep-work-owner">Conduzione: '+escape(event.responsible)+'</p>':'')+'</div></div>'+
+        (event.responsible?'<p class="prep-work-owner">Conduzione: '+escape(event.responsible)+'</p>':'')+
+        (event.speaker?'<p class="prep-work-owner">Relatore: '+escape(event.speaker)+'</p>':'')+'</div></div>'+
         (missing.length?'<ul class="prep-work-missing">'+missing.map(label=>'<li>'+escape(label)+'</li>').join('')+'</ul>':'')+
         (tasks.length?'<div class="prep-work-tasks" role="group" aria-label="Attività di '+escape(event.title)+'">'+
           '<p class="prep-work-progress">'+((event.tasks || []).length-tasks.length)+' di '+(event.tasks || []).length+' attività completate</p>'+
@@ -184,28 +185,60 @@ function renderPrep(list) {
 }
 
 let preparationSaving = false;
-$('prep').addEventListener('change',async event=>{
+let preparationPending = null;
+const preparationDialog = $('prep-confirm-dialog');
+const preparationConfirm = $('prep-confirm-save');
+const preparationCancel = $('prep-confirm-cancel');
+const preparationClose = $('prep-confirm-close');
+$('prep').addEventListener('change',event=>{
   const input = event.target.closest('input[data-prep-task]');
   if (!input) return;
+  input.checked=false;
   const item = events.find(item=>item.id===input.dataset.prepEvent);
   const index = Number(input.dataset.prepTask);
-  if (!mayEdit() || preparationSaving || !item?.tasks?.[index]) { input.checked=false; return; }
+  if (!mayEdit() || preparationSaving || preparationDialog.open || !item?.tasks?.[index] || item.tasks[index].done) return;
+  preparationPending={item,index,input};
+  $('prep-confirm-task').textContent=item.tasks[index].label;
+  $('prep-confirm-event').textContent=item.title;
+  $('prep-confirm-date').textContent=dateLabel(item);
+  $('prep-confirm-message').textContent='';
+  preparationDialog.showModal();
+  preparationCancel.focus();
+});
+preparationCancel.onclick = preparationClose.onclick = ()=>{ if (!preparationSaving) preparationDialog.close(); };
+preparationDialog.addEventListener('cancel',event=>{ if (preparationSaving) event.preventDefault(); });
+preparationDialog.addEventListener('close',()=>{
+  const input=preparationPending?.input;
+  preparationPending=null;
+  if (input?.isConnected) input.focus({preventScroll:true});
+});
+preparationConfirm.onclick = async ()=>{
+  if (!mayEdit() || preparationSaving || !preparationPending) return;
+  const {item,index}=preparationPending;
   preparationSaving=true;
-  $('prep').querySelectorAll('input[data-prep-task]').forEach(control=>control.disabled=true);
+  preparationConfirm.disabled=preparationCancel.disabled=preparationClose.disabled=true;
+  preparationConfirm.setAttribute('aria-busy','true');
+  $('prep-confirm-message').textContent='Salvataggio in corso…';
   const tasks = item.tasks.map((task,i)=>i===index?{...task,done:true}:task);
   try {
     const response = await apiFetch('/api/events',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...item,tasks})});
     const saved = await response.json();
     if (!response.ok) throw new Error(saved.error || 'Salvataggio non riuscito.');
     events = events.map(event=>event.id===saved.id?saved:event);
-    notice('Attività completata.');
-  } catch(error) {
-    notice(error.message || 'Impossibile completare l’attività. Riprova.','error');
-  } finally {
+    preparationDialog.close();
     preparationSaving=false;
     render();
+    const heading=$('prep').querySelector('h2');
+    if (heading) { heading.tabIndex=-1; heading.focus({preventScroll:true}); }
+    notice('Attività completata.');
+  } catch(error) {
+    $('prep-confirm-message').textContent=error.message || 'Impossibile completare l’attività. Riprova.';
+  } finally {
+    preparationSaving=false;
+    preparationConfirm.disabled=preparationCancel.disabled=preparationClose.disabled=false;
+    preparationConfirm.removeAttribute('aria-busy');
   }
-});
+};
 
 async function copyAgendaLink(url) {
   try { await navigator.clipboard.writeText(url); notice('Link copiato. Si apre per chi ha accesso all’agenda.'); }

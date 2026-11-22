@@ -1518,3 +1518,23 @@ dialog .account-content,dialog #details{-webkit-overflow-scrolling:touch}
   #prep .prep-work-task{min-height:40px;align-items:center}
   #prep .prep-work-missing,#prep .prep-work-tasks{margin-left:60px}
 }
+
+/* Explicit checklist confirmation, separate from the event editor. */
+#prep-confirm-dialog{width:min(460px,calc(100vw - 24px));border-radius:16px}
+#prep-confirm-dialog .dialog-head{padding:16px 20px;background:linear-gradient(115deg,#f0f6fb,#fafcfd)}
+#prep-confirm-dialog h2{font-size:1.2rem;letter-spacing:-.025em}
+#prep-confirm-dialog .prep-confirm-content{padding:20px}
+#prep-confirm-dialog .prep-confirm-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#eaf3ed;border:1px solid #d7e7dc;color:#367650;margin-bottom:14px}
+#prep-confirm-dialog .prep-confirm-icon svg{width:23px;height:23px}
+#prep-confirm-description{font-size:.92rem;line-height:1.5;margin:0 0 14px;color:var(--ink);font-weight:600}
+#prep-confirm-dialog .prep-confirm-summary{display:grid;gap:5px;padding:13px;border:1px solid var(--line);border-radius:10px;background:#f7f9fc;overflow-wrap:anywhere}
+#prep-confirm-task{font-size:.9rem;color:var(--ink)}
+#prep-confirm-event{font-size:.78rem;color:#536d82}
+#prep-confirm-date{font-size:.72rem;color:var(--muted)}
+#prep-confirm-dialog .prep-confirm-note{font-size:.75rem;line-height:1.6;margin:13px 0 0;color:var(--muted)}
+#prep-confirm-message{font-size:.76rem;color:#9a3e46;line-height:1.5;margin:10px 0 0}
+#prep-confirm-message:empty{display:none}
+#prep-confirm-dialog .dialog-footer{justify-content:flex-end;gap:10px;border-top:1px solid var(--line);background:#f8fafc;padding:14px 20px}
+#prep-confirm-cancel{background:#edf0f3;border:1px solid #dce3e9;border-radius:9px}
+#prep-confirm-dialog #prep-confirm-save{background:linear-gradient(120deg,#2a7951,#216641);border-color:#246b47;border-radius:9px;font-size:.78rem}
+@media(max-width:480px){#prep-confirm-dialog .dialog-footer{display:grid;grid-template-columns:minmax(0,1fr)}#prep-confirm-save{grid-row:1}#prep-confirm-dialog .dialog-footer button{width:100%;justify-content:center}}

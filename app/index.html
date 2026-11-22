@@ -320,6 +320,18 @@
   </details>
  </div>
 </dialog>
+
+<dialog id="prep-confirm-dialog" aria-labelledby="prep-confirm-title" aria-describedby="prep-confirm-description">
+ <div class="dialog-head"><h2 id="prep-confirm-title">Conferma attività</h2><button type="button" class="square" id="prep-confirm-close" aria-label="Chiudi">×</button></div>
+ <div class="prep-confirm-content">
+  <span class="prep-confirm-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V3h6v2m-7 9 2 2 5-5"/></svg></span>
+  <p id="prep-confirm-description">Sei sicuro di voler segnare questa attività come completata?</p>
+  <div class="prep-confirm-summary"><strong id="prep-confirm-task"></strong><span id="prep-confirm-event"></span><small id="prep-confirm-date"></small></div>
+  <p class="prep-confirm-note">Dopo la conferma sarà rimossa dalle attività aperte. Potrai riaprirla dalla checklist nella scheda evento.</p>
+  <p id="prep-confirm-message" role="status" aria-live="polite"></p>
+ </div>
+ <div class="dialog-footer"><button type="button" class="plain" id="prep-confirm-cancel">Annulla</button><button type="button" class="primary action-with-icon" id="prep-confirm-save"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>Conferma completamento</button></div>
+</dialog>
 </body>
 </html>
 
