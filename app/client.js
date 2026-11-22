@@ -142,18 +142,70 @@ function listPagination(total) {
     '<button type="button" class="plain" data-list-page="'+(listPage+1)+'"'+(listPage===pages?' disabled':'')+'>Avanti<svg class="action-icon ui-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></nav>';
 }
 
-function renderPrep(list) {
-  const cards = list.map(event=>({
-    event,tasks:closed(event)?[]:event.tasks.filter(task=>!task.done)
-  }));
-  const total = cards.reduce((sum,item)=>sum+item.tasks.length,0);
-  const tracked = cards.filter(({event,tasks})=>!closed(event) && (tasks.length || event.status!=='Pronto')).length;
-  $('prep').innerHTML = '<div class="panel-head"><div><h2>Attività da preparare</h2><p class="muted">'+total+' attività aperte · '+tracked+' appuntamenti da seguire</p></div></div>'+
-    (cards.length ? '<div class="prep-list">'+cards.slice((listPage-1)*pageSize,listPage*pageSize).map(({event,tasks})=>'<article class="prep-card" data-color="'+eventColor(event)+'" data-status="'+escape(event.status)+'">'+
-      (event.status==='Annullato'?'<span class="prep-cancelled" aria-hidden="true">×</span>':'')+eventButton(event,event.title)+
-      '<p class="muted">'+escape(dateLabel(event)+(event.responsible?' · '+event.responsible:''))+'</p>'+statusBadge(event.status)+
-      (tasks.length?'<ul>'+tasks.map(task=>'<li>'+escape(task.label)+'</li>').join('')+'</ul>':'')+'</article>').join('')+'</div>' : empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
+function preparationWork(event) {
+  if (closed(event)) return null;
+  const tasks = (event.tasks || []).map((task,index)=>({...task,index})).filter(task=>!task.done);
+  if (event.status==='Pronto' && !tasks.length) return null;
+  const missing = [];
+  if (event.status!=='Pronto') {
+    if (!event.responsible?.trim()) missing.push('Conduzione da assegnare');
+    if (/culto|studio|seminario|convegno|riunione marted/i.test(event.type+' '+event.title) && !event.speaker?.trim())
+      missing.push('Relatore da assegnare');
+  }
+  return {event,tasks,missing};
 }
+
+function renderPrep(list) {
+  const cards = list.map(preparationWork).filter(Boolean);
+  listPage = Math.min(listPage,Math.max(1,Math.ceil(cards.length/pageSize)));
+  const total = cards.reduce((sum,item)=>sum+item.tasks.length,0);
+  $('prep').innerHTML = '<div class="panel-head"><div><h2>Da preparare</h2><p class="muted">'+
+    cards.length+' appuntamenti da seguire · '+total+' attività aperte</p>'+
+    '<p class="prep-work-intro">Qui trovi ciò che richiede ancora attenzione.</p></div></div>'+
+    (cards.length ? '<div class="prep-work-list">'+cards.slice((listPage-1)*pageSize,listPage*pageSize).map(({event,tasks,missing})=>{
+      const day = event.date ? Number(event.date.slice(8)) : '–';
+      const label = event.date ? format(event.date,{month:'short'}) : 'Data';
+      return '<article class="prep-work-item" data-color="'+eventColor(event)+'">'+
+        '<div class="prep-work-heading"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+
+        (event.time?'<span class="date-tile-time">'+escape(event.time)+'</span>':'')+'</span>'+
+        '<div class="prep-work-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span>'+
+        eventButton(event,event.title,'plain prep-work-title')+
+        '<p class="muted">'+escape(dateLabel(event))+'</p>'+statusBadge(event.status)+
+        (event.responsible?'<p class="prep-work-owner">Conduzione: '+escape(event.responsible)+'</p>':'')+'</div></div>'+
+        (missing.length?'<ul class="prep-work-missing">'+missing.map(label=>'<li>'+escape(label)+'</li>').join('')+'</ul>':'')+
+        (tasks.length?'<div class="prep-work-tasks" role="group" aria-label="Attività di '+escape(event.title)+'">'+
+          '<p class="prep-work-progress">'+((event.tasks || []).length-tasks.length)+' di '+(event.tasks || []).length+' attività completate</p>'+
+          tasks.map(task=>'<label class="prep-work-task"><input type="checkbox" data-prep-event="'+escape(event.id)+'" data-prep-task="'+task.index+'"'+
+            (!mayEdit() || preparationSaving?' disabled':'')+'><span>'+escape(task.label)+'</span></label>').join('')+'</div>':
+          (!missing.length?'<p class="prep-work-review">Verifica i dettagli e aggiorna lo stato nella scheda evento.</p>':''))+
+        '<div class="prep-work-actions">'+eventButton(event,'Apri scheda','plain prep-work-open')+'</div></article>';
+    }).join('')+'</div>' : '<div class="prep-work-empty"><span aria-hidden="true">✓</span><h3>Nessun appuntamento da preparare</h3><p>Con i filtri selezionati non ci sono attività o verifiche aperte. Tutti gli appuntamenti restano nel Programma.</p></div>')+
+    listPagination(cards.length);
+}
+
+let preparationSaving = false;
+$('prep').addEventListener('change',async event=>{
+  const input = event.target.closest('input[data-prep-task]');
+  if (!input) return;
+  const item = events.find(item=>item.id===input.dataset.prepEvent);
+  const index = Number(input.dataset.prepTask);
+  if (!mayEdit() || preparationSaving || !item?.tasks?.[index]) { input.checked=false; return; }
+  preparationSaving=true;
+  $('prep').querySelectorAll('input[data-prep-task]').forEach(control=>control.disabled=true);
+  const tasks = item.tasks.map((task,i)=>i===index?{...task,done:true}:task);
+  try {
+    const response = await apiFetch('/api/events',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...item,tasks})});
+    const saved = await response.json();
+    if (!response.ok) throw new Error(saved.error || 'Salvataggio non riuscito.');
+    events = events.map(event=>event.id===saved.id?saved:event);
+    notice('Attività completata.');
+  } catch(error) {
+    notice(error.message || 'Impossibile completare l’attività. Riprova.','error');
+  } finally {
+    preparationSaving=false;
+    render();
+  }
+});
 
 async function copyAgendaLink(url) {
   try { await navigator.clipboard.writeText(url); notice('Link copiato. Si apre per chi ha accesso all’agenda.'); }
@@ -295,7 +347,7 @@ function render() {
   $('reset').classList.toggle('filters-idle', !$('type-filter').value && !$('period-filter').value && !$('recurring-filter').value);
   const titles = {
     agenda:['Agenda della comunità','Appuntamenti e preparazione del programma della comunità.'],
-    prep:['Preparazione','Checklist e responsabilità per gli appuntamenti in programma.'],
+    prep:['Da preparare','Attività aperte e responsabilità da definire.'],
     team:['Appuntamenti in programma','Programma della comunità.']
   };
   $('page-title').textContent = titles[view][0];
