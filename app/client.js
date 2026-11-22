@@ -151,7 +151,7 @@ function renderPrep(list) {
   $('prep').innerHTML = '<div class="panel-head"><div><h2>Attività da preparare</h2><p class="muted">'+total+' attività aperte · '+tracked+' appuntamenti da seguire</p></div></div>'+
     (cards.length ? '<div class="prep-list">'+cards.slice((listPage-1)*pageSize,listPage*pageSize).map(({event,tasks})=>'<article class="prep-card" data-color="'+eventColor(event)+'" data-status="'+escape(event.status)+'">'+
       (event.status==='Annullato'?'<span class="prep-cancelled" aria-hidden="true">×</span>':'')+eventButton(event,event.title)+
-      '<p class="muted">'+escape(dateLabel(event)+' · '+event.status+(event.responsible?' · '+event.responsible:''))+'</p>'+
+      '<p class="muted">'+escape(dateLabel(event)+(event.responsible?' · '+event.responsible:''))+'</p>'+statusBadge(event.status)+
       (tasks.length?'<ul>'+tasks.map(task=>'<li>'+escape(task.label)+'</li>').join('')+'</ul>':'')+'</article>').join('')+'</div>' : empty('Nessun appuntamento con questi filtri.'))+listPagination(list.length);
 }
 

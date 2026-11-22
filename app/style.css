@@ -1475,3 +1475,13 @@ dialog .account-content,dialog #details{-webkit-overflow-scrolling:touch}
   #churchtools-dialog .ct-toolbar input[type=month]{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;inline-size:100%;min-inline-size:0;max-inline-size:100%;-webkit-appearance:none;appearance:none}
   #churchtools-dialog .ct-toolbar input[type=month]::-webkit-date-and-time-value{min-width:0;text-align:left}
 }
+
+/* Preparation status belongs in a compact badge, not across the whole row. */
+#prep .prep-card[data-status]{background:var(--paper);border-color:var(--line);border-style:solid;box-shadow:none}
+#prep .prep-card>p.muted{margin-bottom:5px}
+#prep .prep-card>.status-badge{margin-top:1px}
+#prep .prep-card[data-status]:hover{border-color:#b6c8d9;background:#f9fbfd}
+@media(max-width:650px){
+  #prep>.prep-list{gap:0}
+  #prep .prep-card[data-status]{border:0;border-top:1px solid var(--line)}
+}
