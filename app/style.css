@@ -1557,3 +1557,14 @@ dialog .account-content,dialog #details{-webkit-overflow-scrolling:touch}
  #prep .prep-work-task{min-height:36px}
  #prep .prep-work-actions{margin-top:2px}
 }
+
+/* The preparation card opens its event; only the checkbox completes a task. */
+#prep .prep-work-item{cursor:pointer}
+#prep .prep-work-item:hover{background:#fbfcfe}
+#prep .prep-work-item:focus-within{outline:2px solid #8db1cf;outline-offset:-2px}
+#prep .prep-work-task{cursor:inherit}
+#prep .prep-work-task input{cursor:pointer}
+#prep .prep-work-task input:disabled{cursor:default}
+#prep .prep-work-missing{align-self:stretch;width:auto;margin-left:46px;text-align:left}
+#prep .prep-work-review{color:#aa5b12}
+@media(max-width:650px){#prep .prep-work-missing{margin-left:42px}}

@@ -165,7 +165,7 @@ function renderPrep(list) {
     (cards.length ? '<div class="prep-work-list">'+cards.slice((listPage-1)*pageSize,listPage*pageSize).map(({event,tasks,missing})=>{
       const day = event.date ? Number(event.date.slice(8)) : '–';
       const label = event.date ? format(event.date,{month:'short'}) : 'Data';
-      return '<article class="prep-work-item" data-color="'+eventColor(event)+'">'+
+      return '<article class="prep-work-item" data-prep-card="'+escape(event.id)+'" data-color="'+eventColor(event)+'">'+
         '<div class="prep-work-heading"><span class="date-tile" aria-hidden="true"><strong>'+day+'</strong>'+escape(label)+
         (event.time?'<span class="date-tile-time">'+escape(event.time)+'</span>':'')+'</span>'+
         '<div class="prep-work-copy"><span class="row-type" data-color="'+eventColor(event)+'">'+escape(event.type)+'</span>'+
@@ -176,13 +176,21 @@ function renderPrep(list) {
         (missing.length?'<ul class="prep-work-missing">'+missing.map(label=>'<li>'+escape(label)+'</li>').join('')+'</ul>':'')+
         (tasks.length?'<div class="prep-work-tasks" role="group" aria-label="Attività di '+escape(event.title)+'">'+
           '<p class="prep-work-progress">'+((event.tasks || []).length-tasks.length)+' di '+(event.tasks || []).length+' attività completate</p>'+
-          tasks.map(task=>'<label class="prep-work-task"><input type="checkbox" data-prep-event="'+escape(event.id)+'" data-prep-task="'+task.index+'"'+
-            (!mayEdit() || preparationSaving?' disabled':'')+'><span>'+escape(task.label)+'</span></label>').join('')+'</div>':
+          tasks.map(task=>'<div class="prep-work-task"><input type="checkbox" aria-label="Completa attività: '+escape(task.label)+'" data-prep-event="'+escape(event.id)+'" data-prep-task="'+task.index+'"'+
+            (!mayEdit() || preparationSaving?' disabled':'')+'><span>'+escape(task.label)+'</span></div>').join('')+'</div>':
           (!missing.length?'<p class="prep-work-review">Verifica i dettagli e aggiorna lo stato nella scheda evento.</p>':''))+
-        '<div class="prep-work-actions">'+eventButton(event,'Apri scheda','plain prep-work-open')+'</div></article>';
+        '</article>';
     }).join('')+'</div>' : '<div class="prep-work-empty"><span aria-hidden="true">✓</span><h3>Nessun appuntamento da preparare</h3><p>Con i filtri selezionati non ci sono attività o verifiche aperte. Tutti gli appuntamenti restano nel Programma.</p></div>')+
     listPagination(cards.length);
 }
+
+$('prep').addEventListener('click',event=>{
+  if (event.target.closest('input,button,a,select,textarea')) return;
+  const card=event.target.closest('[data-prep-card]');
+  if (!card) return;
+  const item=events.find(item=>item.id===card.dataset.prepCard);
+  if (item) openEditor(item);
+});
 
 let preparationSaving = false;
 let preparationPending = null;
