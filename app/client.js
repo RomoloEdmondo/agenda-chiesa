@@ -746,7 +746,7 @@ function renderEditor(editing) {
       return '<label><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Data</span><input type="date" name="date" min="0001-01-01" max="9999-12-31" value="'+value+'"></label>';
     }
     if (key==='time') {
-      return '<div class="event-time-field"><span class="event-field-label"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Orario</span><div class="event-time-inputs"><input type="time" name="time" aria-label="Ora di inizio" title="Ora di inizio" value="'+value+'"><span aria-hidden="true">–</span><input type="time" name="endTime" aria-label="Ora di fine" title="Ora di fine (facoltativa)" value="'+escape(active.endTime)+'"></div></div>';
+      return '<label><span class="event-field-label">'+fieldIcons.time+'Orario</span><input type="time" name="time" aria-label="Ora di inizio" value="'+value+'"></label>';
     }
     if (key==='end') {
       return '<details class="event-end"'+(active.end?' open':'')+'><summary>Data fine</summary><label class="event-end-input">'+
@@ -786,7 +786,7 @@ function renderEditor(editing) {
   $('details').innerHTML = '<div class="editor-overview">'+
     '<section class="editor-card editor-program-card" aria-label="Date e preparazione"><div class="fields">'+
     '<div class="event-schedule wide">'+['date','time','status'].map(field).join('')+'</div>'+
-    '<div class="event-options wide">'+field('end')+field('place')+'</div>'+
+    '<div class="event-options wide">'+field('end')+(!readOnly ? '<details class="event-end-time"'+(active.endTime?' open':'')+'><summary>Ora fine · facoltativa</summary><label class="event-end-input"><input type="time" name="endTime" aria-label="Ora di fine (facoltativa)" value="'+escape(active.endTime)+'"></label></details>' : '')+field('place')+'</div>'+
     (!readOnly && active.seriesId ? '<label class="wide">Colore dell’occorrenza<select name="color">'+
       option('','Colore del tipo',!active.color)+colorOptions(active.color)+'</select></label>' : '')+
     '</div></section><section class="editor-card editor-people-card" aria-label="Responsabili e relatore"><div class="editor-people">'+
